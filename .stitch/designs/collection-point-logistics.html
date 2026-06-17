@@ -123,7 +123,7 @@
 <a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Inventory</a>
 <a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Data Export</a>
 <a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Beneficiary Data</a>
-<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Donor Information</a><a class="font-body-md text-body-md text-white border-b-2 border-white font-bold transition-colors cursor-pointer active:opacity-70" href="#">Donor Community Map</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Donor Information</a><a class="font-body-md text-body-md text-white border-b-2 border-white font-bold transition-colors cursor-pointer active:opacity-70" href="#">Milk Collection Logistics Map</a>
 
 </nav>
 </div>
@@ -143,9 +143,16 @@
 <button class="font-label-md text-label-md text-white font-bold cursor-pointer active:opacity-70">Logout</button>
 </div>
 </div>
-</header>
+</header><nav class="fixed top-16 w-full bg-white border-b border-outline-variant z-40 flex px-6 h-12 items-center gap-8">
+  <a href="#" class="h-full flex items-center px-2 border-b-2 border-[#23005c] text-[#23005c] font-bold text-body-md transition-colors">
+    Logistics Map
+  </a>
+  <a href="#" class="h-full flex items-center px-2 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-medium text-body-md transition-colors">
+    Active Site
+  </a>
+</nav>
 <!-- Main Content -->
-<main class="pt-16 h-screen w-full flex flex-col relative overflow-hidden">
+<main class="h-screen w-full flex flex-col relative overflow-hidden pt-28">
 <!-- Map Canvas (Placeholder) -->
 <div class="absolute inset-0 bg-[#EEF2FF] z-0">
 <img class="w-full h-full object-cover opacity-60 grayscale-[20%] brightness-[105%]" data-alt="A high-resolution, professionally stylized medical map showing a clean metropolitan grid in light blue and soft white tones. Minimalist iconography dots the landscape, representing clinical collection points. The lighting is bright and clinically pure, consistent with a modern healthcare laboratory interface. The aesthetic is corporate minimalist with low-contrast grid lines and a soft, professional atmosphere." data-location="San Francisco" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEebmRXfNblSaJicu7PL6SekRPlCLTyxgljfjrdVDBQs226dndbRe-EqPbLJn6bNpwTLGtRHN3HgTAJNTezBHo6slB6jHp9HKnsjeuurE9UlBA6guosWCcSCpCdXvt2i6qqiP7ec1jBsxDl8UqPxtIOPRLeyG48KirFNr5uVcXofG8X3eOKgPmkfvTU7bQFd8Q0sT5meapv4hPqzBm4SWgfxEazeINNYqTDihDSyJR-caxuf8AWGXegEL8QxtnWPb-qL7I1MN9sXg">
@@ -193,7 +200,7 @@
 <!-- Header & Search -->
 <div class="flex justify-between items-start pointer-events-auto">
 <div class="glass-panel p-4 rounded-xl w-96">
-<h1 class="font-headline-md text-headline-md text-on-surface mb-1">Donor Community Map</h1>
+<h1 class="font-headline-md text-headline-md text-on-surface mb-1">Milk Collection Logistics Map</h1>
 <p class="font-body-md text-on-surface-variant mb-4">Tracking 14 collection points across the region.</p>
 <div class="relative">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
@@ -247,7 +254,7 @@
 </div>
 </div>
 <!-- Float Map Actions -->
-<div class="absolute right-6 top-24 flex flex-col gap-2 z-20 pointer-events-auto">
+<div class="absolute right-6 flex flex-col gap-2 z-20 pointer-events-auto top-32">
 <button class="w-12 h-12 bg-surface border border-outline-variant rounded-xl flex items-center justify-center text-on-surface-variant shadow-md hover:bg-surface-container transition-colors">
 <span class="material-symbols-outlined">add</span>
 </button>
@@ -276,6 +283,8 @@
             console.log('Filtering map for:', e.target.value);
         });
     </script>
+
+
 
 
 

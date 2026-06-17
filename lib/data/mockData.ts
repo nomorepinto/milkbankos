@@ -29,6 +29,10 @@ export type DonorRow = {
   lastDonation: string;
   totalVolume: string;
   screeningDue: boolean;
+  contact: string;
+  cycles: number;
+  verification: string;
+  avatarUrl: string;
 };
 
 export type DispensingRecord = {
@@ -157,31 +161,69 @@ export const donorDirectoryStats = {
 
 export const donorRows: DonorRow[] = [
   {
-    id: "D-1042",
-    name: "Sarah Jenkins",
+    id: "DON-8821",
+    name: "Elena Sorvino",
     status: "verified",
     statusLabel: "Active",
-    lastDonation: "Jun 17, 2026",
+    lastDonation: "Oct 12, 2023",
     totalVolume: "42.5 L",
     screeningDue: false,
+    contact: "+1 (555) 293-1022",
+    cycles: 24,
+    verification: "Verified",
+    avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuD8e1GmQgQoHs2cryXymjEKe9DUNjdUOI705hWgCOdPteBBPQwZoiuStVQI2KHVmCLxBMHoo5Nm77dtzO4kWyAzQVm44glK0Ib_4MfBACNlYCENdP8qLuhUyXirrMH2ggjxV0OySm2Qn1HV11IATg7yKeyDsq14HHZ7zXI-Ewo6tBcGvGjFkJkJowaeyeVcJzfmVAXgEc5zNqw83zL8IhIAOYlEa-HlJfx2ovL1b22jG6Ogfa-3XPAgNCyO1S2LQdL-J2oB_UnlZiM",
   },
   {
-    id: "D-1038",
-    name: "Elena Rodriguez",
-    status: "pending",
-    statusLabel: "Screening Due",
-    lastDonation: "Jun 10, 2026",
-    totalVolume: "28.0 L",
-    screeningDue: true,
-  },
-  {
-    id: "D-1021",
+    id: "DON-7712",
     name: "Maya Patel",
     status: "verified",
     statusLabel: "Active",
-    lastDonation: "Jun 16, 2026",
-    totalVolume: "56.2 L",
+    lastDonation: "Oct 09, 2023",
+    totalVolume: "18.2 L",
     screeningDue: false,
+    contact: "+1 (555) 102-8832",
+    cycles: 9,
+    verification: "Verified",
+    avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDM_CnJo0yCpCMQWEV7wqiDczc9dX6qXmuKQFycNzE4b_9ZR08dYBb3VOG71dqRRkOI__fDQo8GmTZlwDgZncpWv7LiMTDRvPII3FXkHPZ1hCcYbFPXJZyiPDH3HIYlpjSBv34EHgK92eLfg36zYYP_8l_JEJUGP982X-TZO4OLNVEydVpIW3z1NoNEj4guL8U0N6eJ8OKMWYnwSlAOJEH6qdzX1_NcDYaa92Q7EEZZa3WV0ZBOq430QkG9ZqhZXcpSRz9DzpzUgno",
+  },
+  {
+    id: "DON-3109",
+    name: "Chloe Henderson",
+    status: "neutral",
+    statusLabel: "Inactive",
+    lastDonation: "Sep 28, 2023",
+    totalVolume: "3.1 L",
+    screeningDue: true,
+    contact: "+1 (555) 921-0045",
+    cycles: 2,
+    verification: "Pending Re-cert",
+    avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuD8bk4fLcpGFAFndtYYDhMieb79vqsFEr5p35frcRUbIAPkxW2RkG7aSQI8uoKBAmG5dBdVf_d0PWNJKNFYhHaAO9D6BbxGkOyoBhenUZPYUerfsqL8BmAwPB8ihlh_kNdlw1lzoiNUKREB_d23Takp2FKL9z4xl-39LrBus2rBH0F_a1xbag3V536qmsI1HOEIeqa-SGCB1XCKLgZdiOvFbH9t-0Yi0jJG4BSMPpOj1K04VjDBOecnN3ZjvaiWHfcwRwrFr6kiuEE",
+  },
+  {
+    id: "DON-2201",
+    name: "Rebecca Bloom",
+    status: "verified",
+    statusLabel: "Active",
+    lastDonation: "Oct 14, 2023",
+    totalVolume: "65.8 L",
+    screeningDue: false,
+    contact: "+1 (555) 441-1234",
+    cycles: 41,
+    verification: "Verified",
+    avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCOkmElQlZZJ_OBo_ZXgLwHRYcRhMGYE9-PL0vNrLCroVjZqBEhdi-vnE-FbJ06ibyqTBBDlCm4UVP2iOhGbVr-GPawnFFE4CIRmG6ZJhc6MXcb-qsbMILUxkNKtCvMAkE6uBJa83RGJnk74I3O6qUNHAvPkfRLKKbA7ruU3Q5-cF-xPjjapDE_Hc9buIKxOBxCr_HmlcuJdOJCuos1SPjxOq-xB4sNO6jdy48XXrdFJePf3MyI_nn6uJJPZZVtisIV055mN8utBDM",
+  },
+  {
+    id: "DON-1194",
+    name: "Jessica Sterling",
+    status: "fail",
+    statusLabel: "Flagged",
+    lastDonation: "Oct 01, 2023",
+    totalVolume: "12.4 L",
+    screeningDue: true,
+    contact: "+1 (555) 309-8871",
+    cycles: 6,
+    verification: "Expired Labs",
+    avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDJHVWn7EaTj4ucNGNYwOu4ingb7JlaXkwVDQTSJDnwz-rUFF-d0q51QhnwluUNtJkkZoxq8q61XpDlIesSX3E_2wnxdlr1i-lGBRHJHKUegeKWSNup_cYUTAD7NHqqNxh1Aky0p2rSCjUuftiVk2A6yz6I5s55BYd8zSM3W5FTECr_TO8Dt-EDBXssm0Ida2R_uIU3-sYGUBslkek08WwBvczpgiTf_pIhQHBbkv-wa2Tj9zrXwz1Qvzs3wj2QJndwG4OhNt1ybdI",
   },
 ];
 

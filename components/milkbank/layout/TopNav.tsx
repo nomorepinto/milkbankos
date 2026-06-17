@@ -14,8 +14,25 @@ export function TopNav({ activeSlug }: TopNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isActive = (href: string, slug: string) =>
-    activeSlug === slug || pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string, slug: string) => {
+    if (slug === "donor-directory") {
+      return (
+        activeSlug === "donor-directory" ||
+        activeSlug === "donor-community-map" ||
+        pathname === "/donor-directory" ||
+        pathname === "/donor-community-map"
+      );
+    }
+    if (slug === "collection-point-logistics") {
+      return (
+        activeSlug === "collection-point-logistics" ||
+        activeSlug === "onsite-collection-terminal" ||
+        pathname === "/collection-point-logistics" ||
+        pathname === "/onsite-collection-terminal"
+      );
+    }
+    return activeSlug === slug || pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <>
