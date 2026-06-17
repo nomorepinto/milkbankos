@@ -1,0 +1,401 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MilkBank OS — Donor Milk Donation Log</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#23005c",
+                    "on-secondary": "#ffffff",
+                    "primary": "#6a48b9",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#85145a",
+                    "on-secondary-fixed": "#001c39",
+                    "secondary": "#0060ac",
+                    "on-surface-variant": "#494552",
+                    "inverse-surface": "#213145",
+                    "secondary-fixed": "#d4e3ff",
+                    "tertiary": "#a43073",
+                    "on-primary-fixed-variant": "#512ea0",
+                    "outline": "#7a7584",
+                    "tertiary-fixed": "#ffd8e7",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#cbc3d4",
+                    "secondary-container": "#64a8fe",
+                    "tertiary-fixed-dim": "#ffafd3",
+                    "secondary-fixed-dim": "#a4c9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f8f9ff",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container-low": "#eff4ff",
+                    "on-background": "#0b1c30",
+                    "inverse-primary": "#d0bcff",
+                    "on-primary-container": "#3f168d",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#e9ddff",
+                    "surface-container-high": "#dce9ff",
+                    "surface-tint": "#6a48b9",
+                    "on-secondary-container": "#003c70",
+                    "on-surface": "#0b1c30",
+                    "error": "#ba1a1a",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#3d0026",
+                    "background": "#f8f9ff",
+                    "on-tertiary-container": "#6b0046",
+                    "surface-container": "#e5eeff",
+                    "surface": "#f8f9ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "tertiary-container": "#f371b5",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#d0bcff",
+                    "on-secondary-fixed-variant": "#004883",
+                    "primary-container": "#ab8aff",
+                    "surface-variant": "#d3e4fe"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-page": "24px",
+                    "density-comfortable": "16px",
+                    "gutter": "16px",
+                    "container-max": "1440px",
+                    "unit": "4px",
+                    "density-dense": "8px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "data-tabular": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbc3d4;
+        border-radius: 10px;
+      }
+      body {
+        background-color: #f8f9ff;
+        color: #0b1c30;
+      }
+      .modal-backdrop {
+        background-color: rgba(11, 28, 48, 0.4);
+        backdrop-filter: blur(4px);
+      }
+      .zebra-table tr:nth-child(even) {
+        background-color: #f1f5f9;
+      }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full bg-[#23005c] text-white border-b border-white/10 flex justify-between items-center px-6 h-16 z-40">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-sm text-headline-sm text-white tracking-tight">MilkBankMS</h1>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Inventory</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Data Export</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Beneficiary Data</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Donor Map</a>
+<a class="font-body-md text-body-md text-white border-b-2 border-white font-bold cursor-pointer" href="#">History</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white/70 cursor-pointer hover:text-white transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-white/70 cursor-pointer hover:text-white transition-colors" data-icon="settings">settings</span>
+<div class="flex items-center gap-2 border-l border-white/20 pl-4 ml-2">
+<span class="text-white/70 cursor-pointer hover:text-white transition-colors">Logout</span>
+<img alt="Staff Profile" class="w-8 h-8 rounded-full border border-white/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDp9w9MLpDPa74e-W8aoxklSA62wMkwm_2oYlw9T0-SJDbSJ5kY_0--52GLwiPd0oy5DQ_LK8BYECJBWyvpW-SzjyR5CzfFI6VoumhPyATeZqcLwWVvM14uWFrrj6ZrlrcNC4qmDuC_IQLZL7-Pw1Xnw3Fdbx9t3v-_CDi_2r9UOn9kCw3QrgD0LoL3F90jIsLKN34sM5ImHRsu6VhmceNSh5p6ziuJO9Fh77Dz2rb4BhjgtAPp7Ksj5GfaYAkHUYc_hpGC_18BnQc">
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="mt-16 p-8 min-h-screen bg-background relative custom-scrollbar overflow-y-auto w-full">
+<!-- Header Section -->
+<div class="max-w-7xl mx-auto">
+<div class="flex justify-between items-end mb-8">
+<div class="space-y-1">
+<h2 class="font-headline-lg text-headline-lg text-on-background">Donation History</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Review and manage your past milk contributions.</p>
+</div>
+<button class="bg-primary text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:opacity-90 transition-opacity active:scale-[0.98]" onclick="openModal()">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Donate Milk
+            </button>
+</div>
+<!-- Bento Stats Grid -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+<div class="col-span-1 bg-white p-6 rounded-xl border border-outline-variant flex flex-col justify-between">
+<div class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-2">Total Volume</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg">12,450</span>
+<span class="text-on-surface-variant font-body-md">mL</span>
+</div>
+<div class="mt-4 flex items-center gap-1 text-secondary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_up">trending_up</span>
+                    12% from last month
+                </div>
+</div>
+<div class="col-span-1 bg-white p-6 rounded-xl border border-outline-variant flex flex-col justify-between">
+<div class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-2">Donations</div>
+<div class="font-headline-lg text-headline-lg">24</div>
+<div class="mt-4 flex items-center gap-1 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" data-icon="calendar_today">calendar_today</span>
+                    Last 30 days: 4
+                </div>
+</div>
+<div class="col-span-2 relative overflow-hidden bg-on-primary-fixed rounded-xl p-6 text-white group">
+<div class="relative z-10">
+<div class="text-primary-fixed font-label-md text-label-md uppercase tracking-wider mb-2">Impact Score</div>
+<div class="font-headline-lg text-headline-lg mb-1">Nurturing 8 Infants</div>
+<p class="font-body-md text-body-md text-primary-fixed-dim max-w-xs">Your contributions have supported life-saving nutrition for premature babies across the region.</p>
+</div>
+</div>
+</div>
+<!-- Data Table Section -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse zebra-table">
+<thead class="bg-surface-container text-on-surface border-b border-outline-variant">
+<tr>
+<th class="px-6 py-4 font-headline-sm text-label-md">DATE &amp; TIME</th>
+<th class="px-6 py-4 font-headline-sm text-label-md">VOLUME (ML)</th>
+<th class="px-6 py-4 font-headline-sm text-label-md">TYPE</th>
+<th class="px-6 py-4 font-headline-sm text-label-md">TEMP</th>
+<th class="px-6 py-4 font-headline-sm text-label-md">STATUS</th>
+<th class="px-6 py-4 font-headline-sm text-label-md text-right">ACTIONS</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<!-- Row 1 -->
+<tr>
+<td class="px-6 py-4">
+<div class="font-data-tabular text-data-tabular">Oct 24, 2023</div>
+<div class="text-label-md text-on-surface-variant font-label-md">08:15 AM</div>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">500 mL</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface px-2 py-1 rounded text-label-md font-label-md">Fresh</span>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">3.8°C</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full text-label-md font-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                Verified
+                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr>
+<td class="px-6 py-4">
+<div class="font-data-tabular text-data-tabular">Oct 22, 2023</div>
+<div class="text-label-md text-on-surface-variant font-label-md">09:30 PM</div>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">450 mL</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface px-2 py-1 rounded text-label-md font-label-md">Frozen</span>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">-18.2°C</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full text-label-md font-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                Verified
+                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr>
+<td class="px-6 py-4">
+<div class="font-data-tabular text-data-tabular">Oct 20, 2023</div>
+<div class="text-label-md text-on-surface-variant font-label-md">07:45 AM</div>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">600 mL</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface px-2 py-1 rounded text-label-md font-label-md">Fresh</span>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">4.1°C</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-label-md font-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                Unverified
+                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr>
+<td class="px-6 py-4">
+<div class="font-data-tabular text-data-tabular">Oct 18, 2023</div>
+<div class="text-label-md text-on-surface-variant font-label-md">11:10 AM</div>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">350 mL</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface px-2 py-1 rounded text-label-md font-label-md">Frozen</span>
+</td>
+<td class="px-6 py-4 font-data-tabular text-data-tabular">-17.5°C</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full text-label-md font-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                Verified
+                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="px-6 py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
+<span class="font-label-md text-label-md text-on-surface-variant">Showing 1-4 of 24 donations</span>
+<div class="flex gap-2">
+<button class="p-2 border border-outline-variant rounded hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="p-2 border border-outline-variant rounded hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Modal Backdrop -->
+<div class="fixed inset-0 z-50 hidden flex items-center justify-center modal-backdrop p-4" id="donationModal">
+<div class="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0 duration-300" id="modalContainer">
+<div class="px-6 py-4 bg-on-primary-fixed flex justify-between items-center text-white">
+<h3 class="font-headline-sm text-headline-sm">Log New Donation</h3>
+<button class="hover:bg-white/10 p-1 rounded-full transition-colors" onclick="closeModal()">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<div class="p-8 space-y-6">
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">VOLUME (ML)</label>
+<input class="w-full p-3 border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="0" type="number">
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">TEMP (°C)</label>
+<input class="w-full p-3 border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="0.0" type="text">
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">DATE</label>
+<input class="w-full p-3 border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">TIME</label>
+<input class="w-full p-3 border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" type="time">
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">MILK TYPE</label>
+<div class="flex gap-4">
+<label class="flex-1 cursor-pointer group">
+<input class="hidden peer" name="milkType" type="radio" value="fresh">
+<div class="p-3 border border-outline rounded-lg text-center peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary transition-all group-hover:bg-surface-container">Fresh</div>
+</label>
+<label class="flex-1 cursor-pointer group">
+<input class="hidden peer" name="milkType" type="radio" value="frozen">
+<div class="p-3 border border-outline rounded-lg text-center peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary transition-all group-hover:bg-surface-container">Frozen</div>
+</label>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">NOTES</label>
+<textarea class="w-full p-3 border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Add any clinical notes or batch details..." rows="3"></textarea>
+</div>
+</div>
+<div class="px-8 py-6 bg-surface-container-lowest border-t border-outline-variant flex gap-4">
+<button class="flex-1 py-3 border border-primary text-primary font-bold rounded-lg hover:bg-primary-fixed/20 transition-colors" onclick="closeModal()">Cancel</button>
+<button class="flex-1 py-3 bg-primary text-white font-bold rounded-lg hover:opacity-90 transition-opacity" onclick="submitDonation()">Submit Donation</button>
+</div>
+</div>
+</div>
+<script>
+        function openModal() {
+            const modal = document.getElementById('donationModal');
+            const container = document.getElementById('modalContainer');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('donationModal');
+            const container = document.getElementById('modalContainer');
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function submitDonation() {
+            // Logic for submission
+            closeModal();
+            // Show a success toast or update table
+        }
+
+        // Close on backdrop click
+        document.getElementById('donationModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body></html>

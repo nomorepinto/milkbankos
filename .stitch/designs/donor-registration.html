@@ -1,0 +1,350 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Donor Registration - MilkBank OS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#23005c",
+                    "on-secondary": "#ffffff",
+                    "primary": "#6a48b9",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#85145a",
+                    "on-secondary-fixed": "#001c39",
+                    "secondary": "#0060ac",
+                    "on-surface-variant": "#494552",
+                    "inverse-surface": "#213145",
+                    "secondary-fixed": "#d4e3ff",
+                    "tertiary": "#a43073",
+                    "on-primary-fixed-variant": "#512ea0",
+                    "outline": "#7a7584",
+                    "tertiary-fixed": "#ffd8e7",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#cbc3d4",
+                    "secondary-container": "#64a8fe",
+                    "tertiary-fixed-dim": "#ffafd3",
+                    "secondary-fixed-dim": "#a4c9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f8f9ff",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container-low": "#eff4ff",
+                    "on-background": "#0b1c30",
+                    "inverse-primary": "#d0bcff",
+                    "on-primary-container": "#3f168d",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#e9ddff",
+                    "surface-container-high": "#dce9ff",
+                    "surface-tint": "#6a48b9",
+                    "on-secondary-container": "#003c70",
+                    "on-surface": "#0b1c30",
+                    "error": "#ba1a1a",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#3d0026",
+                    "background": "#f8f9ff",
+                    "on-tertiary-container": "#6b0046",
+                    "surface-container": "#e5eeff",
+                    "surface": "#f8f9ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "tertiary-container": "#f371b5",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#d0bcff",
+                    "on-secondary-fixed-variant": "#004883",
+                    "primary-container": "#ab8aff",
+                    "surface-variant": "#d3e4fe"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-page": "24px",
+                    "density-comfortable": "16px",
+                    "gutter": "16px",
+                    "container-max": "1440px",
+                    "unit": "4px",
+                    "density-dense": "8px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "data-tabular": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #EEF2FF;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #0b1c30;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .form-card {
+            background: #FFFFFF;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            border-radius: 12px;
+        }
+        .step-active {
+            background-color: #ab8aff;
+            color: white;
+        }
+        .step-inactive {
+            background-color: #e5eeff;
+            color: #6a48b9;
+        }
+        .password-strength-bar {
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbc3d4;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<!-- Top Navigation Suppression (Transactional Page) -->
+<!-- Side Navigation Suppression (Transactional Page) -->
+<main class="flex-grow flex items-center justify-center p-6 md:p-margin-page">
+<div class="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Branding & Progress Sidebar (Bento Style) -->
+<div class="lg:col-span-4 flex flex-col gap-4">
+<div class="form-card p-6 flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-on-primary-fixed rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: &quot;FILL&quot; 1;">water_drop</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm text-on-primary-fixed leading-tight">MilkBankMS</h1>
+<p class="font-label-md text-label-md text-outline">Donor Enrollment</p>
+</div>
+</div>
+<div class="mt-6 flex flex-col gap-6">
+<div class="flex items-start gap-4">
+<div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm step-active ring-4 ring-primary-fixed">1</div>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold">Step 1</p>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Personal Profile</p>
+</div>
+</div>
+<div class="flex items-start gap-4 opacity-50">
+<div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm step-inactive">2</div>
+<div>
+<p class="font-label-md text-label-md text-outline">Step 2</p>
+<p class="font-body-md text-body-md text-outline">Health Screening</p>
+</div>
+</div>
+<div class="flex items-start gap-4 opacity-50">
+<div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm step-inactive">3</div>
+<div>
+<p class="font-label-md text-label-md text-outline">Step 3</p>
+<p class="font-body-md text-body-md text-outline">Documentation</p>
+</div>
+</div>
+</div>
+</div>
+<div class="hidden lg:block relative rounded-xl overflow-hidden h-48 group">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" data-alt="A clean, medical-grade laboratory environment with stainless steel surfaces and soft overhead clinical lighting. A clear glass bottle of milk sits on a polished surface, symbolizing purity and safety. The overall mood is professional, sterile, and high-tech, using a palette of soft blues, whites, and purples to align with the MilkBank OS corporate identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrXlDA4wfXweakggOPtCPTbtKrT7RR5uLjFG3f3R6K0kGrlH-AEd1V0rW6iJrlasz2dZl9VeQrWWQlzqi0gIAmA0NgIdeNr_i5JdXbj88-U84nCIv60Svc2BnaasDQrHYT3CSnHJ3R-bLz6h2bgpIfPa0MvUKBqxqK-0M-EtqiCwrwqhIVmJq4nhThPe1WR6OVRXrkq_mRf_0P4XHthPr2TtC9NgVsC_ZL8ojtATlxuIFxuRmrgdxzB1P9gLiSTncv-m0K-uAW0xE">
+<div class="absolute inset-0 bg-gradient-to-t from-on-primary-fixed/80 to-transparent flex items-end p-4">
+<p class="text-white font-label-md text-label-md italic">"Every donation supports a fragile life. Thank you for your precision."</p>
+</div>
+</div>
+</div>
+<!-- Main Form Canvas -->
+<div class="lg:col-span-8 flex flex-col gap-4">
+<form class="form-card p-8 flex flex-col gap-8 shadow-sm">
+<!-- Form Header -->
+<div class="flex justify-between items-end border-b border-outline-variant pb-4">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Personal Profile</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Verify identity and contact logistics</p>
+</div>
+<span class="font-label-md text-label-md text-primary bg-primary-fixed px-3 py-1 rounded-full">In Progress</span>
+</div>
+<!-- Input Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Name Fields -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant">Legal First Name</label>
+<input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" placeholder="e.g. Jane" type="text">
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant">Legal Last Name</label>
+<input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" placeholder="e.g. Smith" type="text">
+</div>
+<!-- Address with Autocomplete Logic (Simulated) -->
+<div class="md:col-span-2 flex flex-col gap-1.5 relative">
+<label class="font-label-md text-label-md text-on-surface-variant">Residential Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-sm">location_on</span>
+<input class="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" placeholder="Start typing address..." type="text">
+</div>
+<div class="absolute top-full left-0 right-0 z-10 mt-1 bg-white border border-outline-variant rounded-lg shadow-lg hidden">
+<!-- Autocomplete placeholder -->
+</div>
+</div>
+<!-- Contact -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant">Primary Phone</label>
+<input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" placeholder="+1 (555) 000-0000" type="tel">
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant">Professional Email</label>
+<input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" placeholder="jane.smith@example.com" type="email">
+</div>
+<!-- Password with Strength -->
+<div class="md:col-span-2 flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Create Secure Password</label>
+<div class="relative">
+<input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" id="pass-input" placeholder="••••••••" type="password">
+<button class="absolute right-3 top-2 text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+<div class="flex gap-1 h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="password-strength-bar w-1/3 bg-error rounded-full" id="strength-bar"></div>
+</div>
+<p class="font-label-md text-label-md text-outline">Use 8+ characters with mixed case and symbols.</p>
+</div>
+</div>
+<!-- Medical/Health Intake Section -->
+<div class="flex flex-col gap-4 pt-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">medical_information</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Health Intake</h3>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Current Medications (Prescribed or OTC)</label>
+<textarea class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md resize-none" placeholder="List all medications taken in the last 30 days..." rows="2"></textarea>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-outline-variant">
+<span class="font-body-md text-body-md">History of infectious illness?</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+
+<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-outline-variant">
+<span class="font-body-md text-body-md">Recent Travel? (Outside the Philippines)</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div></div>
+</div>
+</div>
+<!-- File Upload Section -->
+<div class="flex flex-col gap-3">
+<label class="font-label-md text-label-md text-on-surface-variant">Clearance Documentation (PDF/JPG)</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-surface-container-lowest hover:bg-primary-fixed/10 transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">upload_file</span>
+</div>
+<div class="text-center">
+<p class="font-body-md text-body-md font-semibold text-on-surface">Click to upload or drag and drop</p>
+<p class="font-label-md text-label-md text-outline">Physician's Clearance &amp; Blood Test Results</p>
+</div>
+</div>
+</div>
+<!-- Consent & Actions -->
+<div class="flex flex-col gap-6 pt-4">
+<label class="flex items-start gap-3 cursor-pointer group">
+<input class="mt-1 w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary transition-all" type="checkbox">
+<span class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                                I hereby certify that the information provided is accurate to the best of my knowledge and I consent to the <a class="text-primary font-bold hover:underline" href="#">MilkBankMS Privacy Policy</a> regarding medical data handling.
+                            </span>
+</label>
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-4 w-full sm:w-auto">
+<button class="w-full sm:w-auto px-6 py-3 border border-primary text-primary font-bold rounded-lg hover:bg-primary/5 active:scale-95 transition-all text-sm" type="button">Cancel</button>
+<a class="text-outline hover:text-on-surface font-label-md text-label-md transition-colors whitespace-nowrap" href="#">Back to Login</a>
+</div>
+<button class="w-full sm:w-auto px-10 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm" type="submit">
+                                Save &amp; Continue
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</form>
+<!-- Support Footer In-Form -->
+<div class="flex items-center justify-center gap-6 py-4">
+<div class="flex items-center gap-1 text-outline hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm">help</span>
+<span class="font-label-md text-label-md">Need Help?</span>
+</div>
+<div class="flex items-center gap-1 text-outline hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm">shield</span>
+<span class="font-label-md text-label-md">Secure Encryption</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Scripts -->
+<script>
+        // Password Strength Indicator Simulation
+        const passInput = document.getElementById('pass-input');
+        const strengthBar = document.getElementById('strength-bar');
+
+        passInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.length === 0) {
+                strengthBar.style.width = '0%';
+                strengthBar.className = 'password-strength-bar bg-outline-variant';
+            } else if (val.length < 5) {
+                strengthBar.style.width = '33%';
+                strengthBar.className = 'password-strength-bar bg-error';
+            } else if (val.length < 10) {
+                strengthBar.style.width = '66%';
+                strengthBar.className = 'password-strength-bar bg-tertiary-container';
+            } else {
+                strengthBar.style.width = '100%';
+                strengthBar.className = 'password-strength-bar bg-primary';
+            }
+        });
+
+        // Form submission prevent for demo
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Step 1 Saved. Moving to Health Screening...');
+        });
+    </script>
+
+
+
+
+</body></html>

@@ -1,0 +1,488 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MilkBank OS - Mom's Act</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8f9ff;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Clinical density - tight vertical rhythm */
+    .table-row-dense {
+      height: 48px;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-fixed": "#23005c",
+            "on-secondary": "#ffffff",
+            "primary": "#6a48b9",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed-variant": "#85145a",
+            "on-secondary-fixed": "#001c39",
+            "secondary": "#0060ac",
+            "on-surface-variant": "#494552",
+            "inverse-surface": "#213145",
+            "secondary-fixed": "#d4e3ff",
+            "tertiary": "#a43073",
+            "on-primary-fixed-variant": "#512ea0",
+            "outline": "#7a7584",
+            "tertiary-fixed": "#ffd8e7",
+            "inverse-on-surface": "#eaf1ff",
+            "on-primary": "#ffffff",
+            "outline-variant": "#cbc3d4",
+            "secondary-container": "#64a8fe",
+            "tertiary-fixed-dim": "#ffafd3",
+            "secondary-fixed-dim": "#a4c9ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-bright": "#f8f9ff",
+            "surface-dim": "#cbdbf5",
+            "surface-container-low": "#eff4ff",
+            "on-background": "#0b1c30",
+            "inverse-primary": "#d0bcff",
+            "on-primary-container": "#3f168d",
+            "error-container": "#ffdad6",
+            "primary-fixed": "#e9ddff",
+            "surface-container-high": "#dce9ff",
+            "surface-tint": "#6a48b9",
+            "on-secondary-container": "#003c70",
+            "on-surface": "#0b1c30",
+            "error": "#ba1a1a",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#3d0026",
+            "background": "#f8f9ff",
+            "on-tertiary-container": "#6b0046",
+            "surface-container": "#e5eeff",
+            "surface": "#f8f9ff",
+            "surface-container-highest": "#d3e4fe",
+            "tertiary-container": "#f371b5",
+            "on-tertiary": "#ffffff",
+            "primary-fixed-dim": "#d0bcff",
+            "on-secondary-fixed-variant": "#004883",
+            "primary-container": "#ab8aff",
+            "surface-variant": "#d3e4fe",
+            "brand-purple": "#3B0764"
+          },
+          "fontFamily": {
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "data-tabular": ["Plus Jakarta Sans"]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full text-white border-b border-white/10 flex justify-between items-center px-6 h-16 z-40 shadow-sm bg-on-primary-fixed">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-sm text-headline-sm text-white tracking-tight" style="opacity: 1;">MilkBankMS</h1>
+<nav class="hidden md:flex gap-6 items-center h-16">
+<a class="text-[#bdb3ce] hover:text-white transition-colors font-body-md text-body-md cursor-pointer" href="#">Inventory</a>
+<a class="text-[#bdb3ce] hover:text-white transition-colors font-body-md text-body-md cursor-pointer" href="#">Data Export</a>
+<a class="text-[#bdb3ce] hover:text-white transition-colors font-body-md text-body-md cursor-pointer" href="#">Beneficiary Data</a>
+<a class="text-white border-b-2 border-white font-bold font-body-md text-body-md flex items-center py-1" href="#">Donor Information</a><a class="text-[#bdb3ce] hover:text-white transition-colors font-body-md text-body-md cursor-pointer" href="#">Donor Community Map</a>
+
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-white cursor-pointer p-2 rounded-full hover:bg-white/10">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full ring-2 ring-brand-purple"></span>
+</div>
+<span class="material-symbols-outlined text-white cursor-pointer p-2 rounded-full hover:bg-white/10">settings</span>
+<div class="h-8 w-[1px] bg-white/20 mx-2"></div>
+<button class="font-body-md text-body-md text-white/80 hover:text-white transition-colors cursor-pointer active:opacity-70">Logout</button>
+<img alt="Staff Profile" class="w-8 h-8 rounded-full bg-primary-fixed ml-2 ring-1 ring-white/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOxvmb3ZTnbNwnP58GtFFY9liU5tNO2zwmlS6SbqXuBN_GIH4UxGnzWDkRNO9izRROduvAEEwV-zbH5sRgg5JLVUXWmIW6lgBXyk5PsCJsVWPnZhKZqkvCz5mapIjFiOzFnwHSIapBfj9kiWCrF9lkV7rkoDgvdykYdAHAMdOuhOTKCLnV4BKsEFi_tuljZtImIcUTkAk9qhyG-5gSTLZqdvm3gaQoxLgGZ5L0piZ9HS4Q3jxfkWRIKMAICpSjch1LJJVE0v__5xM">
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-16 min-h-screen" style="opacity: 1; transition: opacity 0.5s ease-out;">
+<div class="p-8 max-w-[1440px] mx-auto">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<div class="flex items-center gap-2 text-primary font-label-md text-label-md uppercase tracking-wider mb-1">
+<span class="material-symbols-outlined text-[16px]">volunteer_activism</span>
+<span class="">Mom's Act Module</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-background">Donor Registry &amp; History</h2>
+<p class="text-on-surface-variant font-body-md text-body-md mt-1">Management of certified human milk donors and donation cycles.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 border border-primary text-primary font-label-md text-label-md rounded-lg hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined">map</span>
+<span class="">Switch to Map View</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 transition-shadow">
+<span class="material-symbols-outlined">person_add</span>
+<span class="">Register New Donor</span>
+</button>
+</div>
+</div>
+<!-- Stats Bento (Quick Clinical Context) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+<div class="bg-white p-4 rounded-xl border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 bg-primary-fixed/30 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<div>
+<div class="text-on-surface-variant font-label-md text-label-md uppercase">Active Donors</div>
+<div class="font-headline-sm text-headline-sm">142</div>
+</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 bg-secondary-fixed/30 rounded-lg flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div>
+<div class="text-on-surface-variant font-label-md text-label-md uppercase">Total Vol (Month)</div>
+<div class="font-headline-sm text-headline-sm">1,240 L</div>
+</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 bg-tertiary-fixed/30 rounded-lg flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div>
+<div class="text-on-surface-variant font-label-md text-label-md uppercase">Pending Certs</div>
+<div class="font-headline-sm text-headline-sm">08</div>
+</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 bg-error-container/30 rounded-lg flex items-center justify-center text-error">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<div class="text-on-surface-variant font-label-md text-label-md uppercase">Due Screening</div>
+<div class="font-headline-sm text-headline-sm">12</div>
+</div>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="bg-white p-4 rounded-t-xl border border-outline-variant/30 border-b-0 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-3 flex-grow max-w-md">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:border-primary" placeholder="Search donor name, ID, or contact..." type="text">
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-lg font-label-md text-label-md text-on-surface border border-outline-variant/50">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span class="">Filters</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-outline">Sort by:</span>
+<select class="bg-transparent font-label-md text-label-md text-on-surface focus:outline-none cursor-pointer">
+<option>Last Donation (Newest)</option>
+<option>Volume (High to Low)</option>
+<option>Donor Name (A-Z)</option>
+</select>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-white border border-outline-variant/30 rounded-b-xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/50">
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface uppercase tracking-wider">Donor Name</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface uppercase tracking-wider">Contact</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface uppercase tracking-wider">Total Volume</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface uppercase tracking-wider">Donation Count</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface uppercase tracking-wider">Last Donation</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface uppercase tracking-wider">Verification</th>
+<th class="px-6 py-4 text-right"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 font-data-tabular text-data-tabular">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Donor" class="w-8 h-8 rounded-full bg-secondary-fixed text-[10px] flex items-center justify-center font-bold" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC87_RbMzfauT9uNC_Pfs2pYuI0AnrbXfqqMAhGCDHb_I0CH6VrhU-JgTet4etMybV2Jj6xLd_M0nR_EsB5tUt60urTW33yRU1pEz8fy8i78mECjBRQegAEHCciUFW_KB7Q4nhRwSpaSMZlh04HI6At6LcC16lo1nXYd_54GEdY0xJ2mx97cYWKhLOl_fWNlsq9wop3COIJgaa2krLTLe4k5AouoCe6dGi8txPMteWw4AJMCMGT3ZJrRT4OQycYRGkeh7-jqH3hALI">
+<div>
+<div class="font-bold text-on-surface">Elena Sorvino</div>
+<div class="text-outline text-[11px]">ID: DON-8821</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 293-1022</td>
+<td class="px-6 py-4 font-bold text-on-surface">42.5 L</td>
+<td class="px-6 py-4">24 Cycles</td>
+<td class="px-6 py-4">Oct 12, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-secondary-fixed/50 text-on-secondary-fixed-variant text-[10px] font-bold uppercase">Active</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-bold">Verified</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-primary hover:bg-primary/5 rounded font-label-md text-label-md transition-colors border border-transparent hover:border-primary/20">View Donor Profile</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-low/20">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Donor" class="w-8 h-8 rounded-full bg-tertiary-fixed text-[10px] flex items-center justify-center font-bold" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDM_CnJo0yCpCMQWEV7wqiDczc9dX6qXmuKQFycNzE4b_9ZR08dYBb3VOG71dqRRkOI__fDQo8GmTZlwDgZncpWv7LiMTDRvPII3FXkHPZ1hCcYbFPXJZyiPDH3HIYlpjSBv34EHgK92eLfg36zYYP_8l_JEJUGP982X-TZO4OLNVEydVpIW3z1NoNEj4guL8U0N6eJ8OKMWYnwSlAOJEH6qdzX1_NcDYaa92Q7EEZZa3WV0ZBOq430QkG9ZqhZXcpSRz9DzpzUgno">
+<div>
+<div class="font-bold text-on-surface">Maya Patel</div>
+<div class="text-outline text-[11px]">ID: DON-7712</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 102-8832</td>
+<td class="px-6 py-4 font-bold text-on-surface">18.2 L</td>
+<td class="px-6 py-4">09 Cycles</td>
+<td class="px-6 py-4">Oct 09, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-secondary-fixed/50 text-on-secondary-fixed-variant text-[10px] font-bold uppercase">Active</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-bold">Verified</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-primary hover:bg-primary/5 rounded font-label-md text-label-md transition-colors border border-transparent hover:border-primary/20">View Donor Profile</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Donor" class="w-8 h-8 rounded-full bg-primary-fixed text-[10px] flex items-center justify-center font-bold" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8bk4fLcpGFAFndtYYDhMieb79vqsFEr5p35frcRUbIAPkxW2RkG7aSQI8uoKBAmG5dBdVf_d0PWNJKNFYhHaAO9D6BbxGkOyoBhenUZPYUerfsqL8BmAwPB8ihlh_kNdlw1lzoiNUKREB_d23Takp2FKL9z4xl-39LrBus2rBH0F_a1xbag3V536qmsI1HOEIeqa-SGCB1XCKLgZdiOvFbH9t-0Yi0jJG4BSMPpOj1K04VjDBOecnN3ZjvaiWHfcwRwrFr6kiuEE">
+<div>
+<div class="font-bold text-on-surface">Chloe Henderson</div>
+<div class="text-outline text-[11px]">ID: DON-3109</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 921-0045</td>
+<td class="px-6 py-4 font-bold text-on-surface">3.1 L</td>
+<td class="px-6 py-4">02 Cycles</td>
+<td class="px-6 py-4">Sep 28, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-outline-variant/30 text-outline text-[10px] font-bold uppercase">Inactive</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[16px]">pending</span>
+<span class="font-bold">Pending Re-cert</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-primary hover:bg-primary/5 rounded font-label-md text-label-md transition-colors border border-transparent hover:border-primary/20">View Donor Profile</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-low/20">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Donor" class="w-8 h-8 rounded-full bg-on-tertiary-fixed text-[10px] flex items-center justify-center font-bold text-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOkmElQlZZJ_OBo_ZXgLwHRYcRhMGYE9-PL0vNrLCroVjZqBEhdi-vnE-FbJ06ibyqTBBDlCm4UVP2iOhGbVr-GPawnFFE4CIRmG6ZJhc6MXcb-qsbMILUxkNKtCvMAkE6uBJa83RGJnk74I3O6qUNHAvPkfRLKKbA7ruU3Q5-cF-xPjjapDE_Hc9buIKxOBxCr_HmlcuJdOJCuos1SPjxOq-xB4sNO6jdy48XXrdFJePf3MyI_nn6uJJPZZVtisIV055mN8utBDM">
+<div>
+<div class="font-bold text-on-surface">Rebecca Bloom</div>
+<div class="text-outline text-[11px]">ID: DON-2201</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 441-1234</td>
+<td class="px-6 py-4 font-bold text-on-surface">65.8 L</td>
+<td class="px-6 py-4">41 Cycles</td>
+<td class="px-6 py-4">Oct 14, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-secondary-fixed/50 text-on-secondary-fixed-variant text-[10px] font-bold uppercase">Active</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-bold">Verified</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-primary hover:bg-primary/5 rounded font-label-md text-label-md transition-colors border border-transparent hover:border-primary/20">View Donor Profile</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Donor" class="w-8 h-8 rounded-full bg-error-container text-[10px] flex items-center justify-center font-bold" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJHVWn7EaTj4ucNGNYwOu4ingb7JlaXkwVDQTSJDnwz-rUFF-d0q51QhnwluUNtJkkZoxq8q61XpDlIesSX3E_2wnxdlr1i-lGBRHJHKUegeKWSNup_cYUTAD7NHqqNxh1Aky0p2rSCjUuftiVk2A6yz6I5s55BYd8zSM3W5FTECr_TO8Dt-EDBXssm0Ida2R_uIU3-sYGUBslkek08WwBvczpgiTf_pIhQHBbkv-wa2Tj9zrXwz1Qvzs3wj2QJndwG4OhNt1ybdI">
+<div>
+<div class="font-bold text-on-surface">Jessica Sterling</div>
+<div class="text-outline text-[11px]">ID: DON-1194</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 309-8871</td>
+<td class="px-6 py-4 font-bold text-on-surface">12.4 L</td>
+<td class="px-6 py-4">06 Cycles</td>
+<td class="px-6 py-4">Oct 01, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-error-container/50 text-error text-[10px] font-bold uppercase">Flagged</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-error">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+<span class="font-bold">Expired Labs</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-primary hover:bg-primary/5 rounded font-label-md text-label-md transition-colors border border-transparent hover:border-primary/20">View Donor Profile</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="text-on-surface-variant font-label-md text-label-md">
+            Showing 1-10 of 142 donors
+          </div>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container text-outline transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary text-white font-label-md text-label-md">1</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container font-label-md text-label-md text-on-surface">2</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container font-label-md text-label-md text-on-surface">3</button>
+<span class="px-2">...</span>
+<button class="w-8 h-8 rounded hover:bg-surface-container font-label-md text-label-md text-on-surface">15</button>
+<button class="p-1 rounded hover:bg-surface-container text-outline transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Detail Card (Asymmetric Layout element) -->
+<div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 bg-white rounded-xl border border-outline-variant/30 overflow-hidden">
+<div class="p-6 border-b border-outline-variant/30 flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Recent Activity Logs</h3>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary">more_vert</span>
+</div>
+<div class="p-0">
+<ul class="divide-y divide-outline-variant/10">
+<li class="p-4 hover:bg-surface-container-lowest transition-colors flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">add_task</span>
+</div>
+<div class="flex-grow">
+<p class="font-body-md text-body-md text-on-surface">Screening completed for <span class="font-bold">Maya Patel</span></p>
+<p class="text-outline font-label-md text-label-md">2 hours ago • Verified by Dr. Aris</p>
+</div>
+<button class="text-primary font-label-md text-label-md hover:underline">Details</button>
+</li>
+<li class="p-4 hover:bg-surface-container-lowest transition-colors flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+</div>
+<div class="flex-grow">
+<p class="font-body-md text-body-md text-on-surface">Shipment ID #SH-1992 received</p>
+<p class="text-outline font-label-md text-label-md">5 hours ago • From: City General Hub</p>
+</div>
+<button class="text-primary font-label-md text-label-md hover:underline">Details</button>
+</li>
+<li class="p-4 hover:bg-surface-container-lowest transition-colors flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-error-container/20 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[20px]">priority_high</span>
+</div>
+<div class="flex-grow">
+<p class="font-body-md text-body-md text-on-surface">Laboratory certification alert</p>
+<p class="text-outline font-label-md text-label-md">Yesterday • Donor ID: DON-1194</p>
+</div>
+<button class="text-primary font-label-md text-label-md hover:underline">Details</button>
+</li>
+</ul>
+</div>
+</div>
+<div class="bg-primary-fixed/20 rounded-xl p-6 border border-primary-container/30 flex flex-col justify-between">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-primary-container mb-2">Clinical Map Overview</h3>
+<p class="font-body-md text-body-md text-on-primary-fixed-variant mb-6 leading-relaxed">
+              Real-time visualization of donor concentration and logistics route efficiency. Switch to Map View to manage pickups.
+            </p>
+<div class="aspect-square bg-white rounded-lg border border-primary-container/30 overflow-hidden relative">
+<div class="absolute inset-0 bg-slate-100 opacity-50 flex items-center justify-center">
+<!-- Map Placeholder Representation -->
+<div class="w-full h-full bg-[radial-gradient(circle,rgba(106,72,185,0.1)_1px,transparent_1px)] [background-size:20px_20px]"></div>
+</div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+<span class="material-symbols-outlined text-primary text-[40px]" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div class="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full -mt-2 font-bold shadow-lg">142 Donors</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 bg-brand-purple text-white font-label-md text-label-md rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined">explore</span>
+<span class="">Enter Logistics Interface</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Interactive Search Highlight JS -->
+<script>
+    const searchInput = document.querySelector('input[type="text"]');
+    const tableRows = document.querySelectorAll('tbody tr');
+
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      tableRows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (text.includes(term)) {
+          row.style.display = 'table-row';
+          row.classList.add('bg-primary-container/5');
+        } else {
+          row.style.display = 'none';
+          row.classList.remove('bg-primary-container/5');
+        }
+      });
+    });
+
+    // Simple fade-in effect for the dashboard
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('main').style.opacity = '0';
+      document.querySelector('main').style.transition = 'opacity 0.5s ease-out';
+      setTimeout(() => {
+        document.querySelector('main').style.opacity = '1';
+      }, 50);
+    });
+  </script>
+
+
+
+
+
+
+
+
+</body></html>

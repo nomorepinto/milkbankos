@@ -1,0 +1,99 @@
+{
+  "name": "projects/3112350855526039281",
+  "projectId": "3112350855526039281",
+  "title": "Human Milk Bank Management System",
+  "visibility": "PUBLIC",
+  "createTime": "2026-06-10T11:23:09.800368Z",
+  "updateTime": "2026-06-17T19:35:14.699540Z",
+  "projectType": "TEXT_TO_UI_PRO",
+  "origin": "STITCH",
+  "deviceType": "DESKTOP",
+  "designTheme": {
+    "colorMode": "LIGHT",
+    "font": "PLUS_JAKARTA_SANS",
+    "roundness": "ROUND_EIGHT",
+    "customColor": "#ab8aff"
+  },
+  "screens": {
+    "login": {
+      "id": "4d3aa82624fb452ab0abdf7c8f4b2917",
+      "sourceScreen": "projects/3112350855526039281/screens/4d3aa82624fb452ab0abdf7c8f4b2917",
+      "label": "Screen 1: Login - Human Milk Bank",
+      "width": 1280,
+      "height": 644
+    },
+    "donor-registration": {
+      "id": "22270b51101a4f32809acaf2df6390e9",
+      "sourceScreen": "projects/3112350855526039281/screens/22270b51101a4f32809acaf2df6390e9",
+      "label": "Screen 2: Donor Registration",
+      "width": 1280,
+      "height": 1381
+    },
+    "milk-donation-log": {
+      "id": "4c6c02a7e7f248a98c183e7bbb7e6eae",
+      "sourceScreen": "projects/3112350855526039281/screens/4c6c02a7e7f248a98c183e7bbb7e6eae",
+      "label": "Screen 3: Milk Donation Log - Updated Layout",
+      "width": 1280,
+      "height": 1152
+    },
+    "inventory-lab-results": {
+      "id": "33155b4c88794b498d9330602d1fa1bb",
+      "sourceScreen": "projects/3112350855526039281/screens/33155b4c88794b498d9330602d1fa1bb",
+      "label": "Screen 4: Inventory & Laboratory Results",
+      "width": 1280,
+      "height": 1024
+    },
+    "data-export": {
+      "id": "66f4e526b5984f869d0f21e400bb7912",
+      "sourceScreen": "projects/3112350855526039281/screens/66f4e526b5984f869d0f21e400bb7912",
+      "label": "Screen 5: Data Export Tool - Updated Layout",
+      "width": 1280,
+      "height": 1129
+    },
+    "beneficiary-dispensing": {
+      "id": "3e0fd6fe85b24f83b8858503eb3df2c4",
+      "sourceScreen": "projects/3112350855526039281/screens/3e0fd6fe85b24f83b8858503eb3df2c4",
+      "label": "Screen 6: Beneficiary Dispensing Record",
+      "width": 1280,
+      "height": 2192
+    },
+    "beneficiary-registration": {
+      "id": "f66c92f022104451a4a664780ee37064",
+      "sourceScreen": "projects/3112350855526039281/screens/f66c92f022104451a4a664780ee37064",
+      "label": "Screen 7: Beneficiary Registration - Updated Layout",
+      "width": 1280,
+      "height": 1103
+    },
+    "donor-community-map": {
+      "id": "e460db8c4f824fe3968fb7d248405eb5",
+      "sourceScreen": "projects/3112350855526039281/screens/e460db8c4f824fe3968fb7d248405eb5",
+      "label": "Screen 8: Donor Community Map",
+      "width": 1280,
+      "height": 1024
+    },
+    "donor-directory": {
+      "id": "49285143bdf04ed5a3d62c2ccdd6f5b4",
+      "sourceScreen": "projects/3112350855526039281/screens/49285143bdf04ed5a3d62c2ccdd6f5b4",
+      "label": "Screen 9: Donor Directory - Mom's Act",
+      "width": 1280,
+      "height": 1779
+    },
+    "collection-point-logistics": {
+      "id": "084f5fe809cb4e43b6e7b9cc1df7ede2",
+      "sourceScreen": "projects/3112350855526039281/screens/084f5fe809cb4e43b6e7b9cc1df7ede2",
+      "label": "Screen 10: Collection Point Logistics - Updated Layout",
+      "width": 1280,
+      "height": 1024
+    },
+    "onsite-collection-terminal": {
+      "id": "bf80800763454f6db32cafb33c4fbaac",
+      "sourceScreen": "projects/3112350855526039281/screens/bf80800763454f6db32cafb33c4fbaac",
+      "label": "Screen 11: Onsite Collection Terminal - Updated Layout",
+      "width": 1280,
+      "height": 1024
+    }
+  },
+  "metadata": {
+    "userRole": "OWNER"
+  }
+}

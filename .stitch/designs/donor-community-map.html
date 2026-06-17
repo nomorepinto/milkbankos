@@ -1,0 +1,290 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head></head><body class="text-on-surface overflow-hidden h-screen flex"><svg class="inline-defs-container" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"></svg>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MilkBank OS - Donor Map</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#23005c",
+                        "on-secondary": "#ffffff",
+                        "primary": "#6a48b9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#85145a",
+                        "on-secondary-fixed": "#001c39",
+                        "secondary": "#0060ac",
+                        "on-surface-variant": "#494552",
+                        "inverse-surface": "#213145",
+                        "secondary-fixed": "#d4e3ff",
+                        "tertiary": "#a43073",
+                        "on-primary-fixed-variant": "#512ea0",
+                        "outline": "#7a7584",
+                        "tertiary-fixed": "#ffd8e7",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#cbc3d4",
+                        "secondary-container": "#64a8fe",
+                        "tertiary-fixed-dim": "#ffafd3",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "inverse-primary": "#d0bcff",
+                        "on-primary-container": "#3f168d",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#e9ddff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-tint": "#6a48b9",
+                        "on-secondary-container": "#003c70",
+                        "on-surface": "#0b1c30",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#3d0026",
+                        "background": "#f8f9ff",
+                        "on-tertiary-container": "#6b0046",
+                        "surface-container": "#e5eeff",
+                        "surface": "#f8f9ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "tertiary-container": "#f371b5",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#d0bcff",
+                        "on-secondary-fixed-variant": "#004883",
+                        "primary-container": "#ab8aff",
+                        "surface-variant": "#d3e4fe",
+                        "brand-dark-purple": "#3B0764"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-page": "24px",
+                        "density-comfortable": "16px",
+                        "gutter": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "density-dense": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "data-tabular": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #EEF2FF;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .map-container {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+
+
+<!-- Main Content Area (Expanded to full width) -->
+<main class="flex-1 flex flex-col h-screen relative">
+<!-- TopAppBar (Updated: Background color, text color, and new navigation item) -->
+<header class="fixed top-0 right-0 left-0 bg-on-primary-fixed flex justify-between items-center px-6 h-16 z-40 border-b border-white/10">
+<div class="flex items-center gap-8">
+<span class="font-headline-sm text-headline-sm text-white">MilkBankMS</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Inventory</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Data Export</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Beneficiary Data</a>
+<a class="font-body-md text-body-md text-white border-b-2 border-white font-bold cursor-pointer" href="#">Donor Information</a><a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer" href="#">Donor Community Map</a>
+
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-white cursor-pointer active:opacity-70" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-white cursor-pointer active:opacity-70" data-icon="settings">settings</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-white/20 bg-white/10">
+<img alt="Staff Profile" class="w-full h-full object-cover" data-alt="A professional close-up portrait of a female clinician in a modern medical setting, wearing a clean white lab coat with subtle branding. The lighting is soft and clinical, emphasizing a bright and professional atmosphere. The background is a slightly blurred high-tech medical laboratory with glass surfaces and lavender accents. Her expression is confident and friendly, embodying the reliability and expertise of a milk bank manager." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8e1GmQgQoHs2cryXymjEKe9DUNjdUOI705hWgCOdPteBBPQwZoiuStVQI2KHVmCLxBMHoo5Nm77dtzO4kWyAzQVm44glK0Ib_4MfBACNlYCENdP8qLuhUyXirrMH2ggjxV0OySm2Qn1HV11IATg7yKeyDsq14HHZ7zXI-Ewo6tBcGvGjFkJkJowaeyeVcJzfmVAXgEc5zNqw83zL8IhIAOYlEa-HlJfx2ovL1b22jG6Ogfa-3XPAgNCyO1S2LQdL-J2oB_UnlZiM">
+</div>
+<button class="font-body-md text-body-md text-white cursor-pointer font-bold">Logout</button>
+</div>
+</header>
+<!-- Map Canvas -->
+<div class="mt-16 flex-1 relative w-full h-full overflow-hidden map-container bg-surface-container-low">
+<!-- Simulated Map Image Background -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover grayscale opacity-30" data-alt="A highly detailed aerial topographic map view of a metropolitan area, styled in a minimalist clinical light gray and slate palette. The streets and landmarks are rendered with fine, professional lines, avoiding clutter. The aesthetic is modern and data-focused, with soft shadows under the elevated layers. The lighting is high-key and even, perfectly matching a clinical management dashboard interface." data-location="San Francisco" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOwsE3F-QcS7zpR36UDf-ILRgQTHdB8e-ZGXhFpAsX3zudW7G2rjQVEkkQI3S14__X8MOLH4iwtslCwI8T9MwYKxoUMJpnPJvF1lohioY11jpTIIBlAxKZ2_CNFSoqm6Ui6p8KwgpgRPWyLeaznif16qIZolCZiI73C6Q1Quv_15Csx5CrbSt_l9o4GHUmMYli-F1SH_aS9oPPcbDg1nIhCGD5lYVmmFoOz8FjzLayzyEj2kAGyvQxbrDiWv0MJlLlnuXjHH6NBsE">
+</div>
+<!-- UI Overlay: Search & Filters -->
+<div class="absolute top-6 left-6 z-10 flex gap-4">
+<div class="glass-panel flex items-center px-4 py-2 rounded-lg shadow-sm w-80">
+<span class="material-symbols-outlined text-outline mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-body-md outline-none" placeholder="Search donors by ID or location..." type="text">
+</div>
+<div class="glass-panel flex items-center px-4 py-2 rounded-lg shadow-sm cursor-pointer hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-primary mr-2" data-icon="filter_list">filter_list</span>
+<span class="font-label-md text-label-md text-on-surface">Filters</span>
+</div>
+</div>
+<!-- UI Overlay: View Switcher -->
+<div class="absolute top-6 right-6 z-10">
+<button class="bg-primary text-white flex items-center px-4 py-2 rounded-lg shadow-lg hover:bg-primary-container transition-all active:scale-95">
+<span class="material-symbols-outlined mr-2" data-icon="list">list</span>
+<span class="font-label-md text-label-md uppercase tracking-wider">Switch to List View</span>
+</button>
+</div>
+<!-- UI Overlay: Legend -->
+<div class="absolute bottom-6 left-6 z-10 glass-panel p-4 rounded-xl shadow-sm border border-outline-variant">
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-3 uppercase tracking-tighter">Donor Status</h3>
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="font-body-md text-body-md">Active (128)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-outline"></div>
+<span class="font-body-md text-body-md">Inactive (42)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-tertiary-container"></div>
+<span class="font-body-md text-body-md">Unverified (15)</span>
+</div>
+</div>
+</div>
+<!-- Interactive Pins (Simulated) -->
+<!-- Active Pin -->
+<div class="absolute top-[30%] left-[45%] z-20 group cursor-pointer">
+<div class="relative">
+<span class="material-symbols-outlined text-secondary text-4xl drop-shadow-md transition-transform group-hover:scale-125" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<!-- Popup on Hover/Click simulated -->
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-48 glass-panel p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-md text-[10px] bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full uppercase">Active</span>
+<span class="font-label-md text-[10px] text-outline">ID: 8824</span>
+</div>
+<p class="font-headline-sm text-label-md text-on-surface leading-tight">Sarah Jenkins</p>
+<p class="font-body-md text-[11px] text-on-surface-variant mt-1">Last Donation: 2 days ago</p>
+<div class="mt-3 border-t border-outline-variant pt-2">
+<button class="text-primary font-label-md text-[11px] hover:underline">View Full Profile</button>
+</div>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 glass-panel rotate-45 border-t-0 border-l-0"></div>
+</div>
+</div>
+</div>
+<!-- Inactive Pin -->
+<div class="absolute top-[60%] left-[35%] z-20 group cursor-pointer">
+<span class="material-symbols-outlined text-outline text-4xl drop-shadow-md transition-transform group-hover:scale-125" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-48 glass-panel p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<span class="font-label-md text-[10px] bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded-full uppercase">Inactive</span>
+<p class="font-headline-sm text-label-md text-on-surface leading-tight mt-2">Elena Rodriguez</p>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 glass-panel rotate-45 border-t-0 border-l-0"></div>
+</div>
+</div>
+<!-- Unverified Pin -->
+<div class="absolute top-[45%] left-[65%] z-20 group cursor-pointer">
+<span class="material-symbols-outlined text-tertiary-container text-4xl drop-shadow-md transition-transform group-hover:scale-125 animate-pulse" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-48 glass-panel p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<span class="font-label-md text-[10px] bg-tertiary-fixed text-on-tertiary-fixed px-2 py-0.5 rounded-full uppercase">Unverified</span>
+<p class="font-headline-sm text-label-md text-on-surface leading-tight mt-2">New Registration</p>
+<p class="font-body-md text-[11px] text-on-surface-variant mt-1">Pending Lab Results</p>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 glass-panel rotate-45 border-t-0 border-l-0"></div>
+</div>
+</div>
+<!-- Background Texture for Clinical Detail -->
+<div class="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply">
+<svg height="100%" width="100%">
+<pattern height="40" id="grid" patternUnits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="1"></path>
+</pattern>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+</div>
+<!-- Floating Navigation Stats (Bottom Right) -->
+<div class="absolute bottom-6 right-6 z-30 flex flex-col gap-3">
+<div class="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-primary/10 w-64">
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-headline-sm text-label-md">Regional Activity</h4>
+<span class="text-secondary material-symbols-outlined" data-icon="trending_up">trending_up</span>
+</div>
+<div class="space-y-3">
+<div>
+<div class="flex justify-between text-[11px] mb-1">
+<span class="text-on-surface-variant">Metropolitan North</span>
+<span class="font-bold">64%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full">
+<div class="bg-primary h-full rounded-full" style="width: 64%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[11px] mb-1">
+<span class="text-on-surface-variant">Central Valley</span>
+<span class="font-bold">32%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full">
+<div class="bg-secondary h-full rounded-full" style="width: 32%"></div>
+</div>
+</div>
+</div>
+<button class="mt-4 w-full py-2 bg-on-primary-fixed text-white rounded-lg font-label-md text-[11px] uppercase tracking-widest hover:bg-black transition-colors">
+                    Download Map Data
+                </button>
+</div>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for active state tracking
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (link.textContent.trim() !== "Donor Map") {
+                    // Logic would normally navigate here
+                    console.log('Navigating to:', link.textContent.trim());
+                }
+            });
+        });
+
+        // Search highlight simulation
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('border-primary');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('border-primary');
+        });
+    </script>
+
+
+
+
+</body></html>

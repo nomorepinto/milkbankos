@@ -1,0 +1,283 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MilkBank OS - Donor Community Map</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .map-gradient-overlay {
+            background: linear-gradient(180deg, rgba(248, 249, 255, 0.9) 0%, rgba(248, 249, 255, 0) 15%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 116, 139, 0.1);
+        }
+        /* Tight scrollbar for dense clinical UI */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbc3d4; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#23005c",
+                        "on-secondary": "#ffffff",
+                        "primary": "#6a48b9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#85145a",
+                        "on-secondary-fixed": "#001c39",
+                        "secondary": "#0060ac",
+                        "on-surface-variant": "#494552",
+                        "inverse-surface": "#213145",
+                        "secondary-fixed": "#d4e3ff",
+                        "tertiary": "#a43073",
+                        "on-primary-fixed-variant": "#512ea0",
+                        "outline": "#7a7584",
+                        "tertiary-fixed": "#ffd8e7",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#cbc3d4",
+                        "secondary-container": "#64a8fe",
+                        "tertiary-fixed-dim": "#ffafd3",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "inverse-primary": "#d0bcff",
+                        "on-primary-container": "#3f168d",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#e9ddff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-tint": "#6a48b9",
+                        "on-secondary-container": "#003c70",
+                        "on-surface": "#0b1c30",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#3d0026",
+                        "background": "#f8f9ff",
+                        "on-tertiary-container": "#6b0046",
+                        "surface-container": "#e5eeff",
+                        "surface": "#f8f9ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "tertiary-container": "#f371b5",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#d0bcff",
+                        "on-secondary-fixed-variant": "#004883",
+                        "primary-container": "#ab8aff",
+                        "surface-variant": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-page": "24px",
+                        "density-comfortable": "16px",
+                        "gutter": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "density-dense": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "data-tabular": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full bg-[#23005c] border-b border-white/10 flex justify-between items-center px-6 h-16 w-full z-40 flat no shadows">
+<div class="flex items-center gap-8">
+<span class="font-headline-sm text-headline-sm text-white">MilkBankMS</span>
+<nav class="hidden md:flex gap-6 items-center h-16">
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Inventory</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Data Export</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Beneficiary Data</a>
+<a class="font-body-md text-body-md text-white/70 hover:text-white transition-colors cursor-pointer active:opacity-70" href="#">Donor Information</a><a class="font-body-md text-body-md text-white border-b-2 border-white font-bold transition-colors cursor-pointer active:opacity-70" href="#">Donor Community Map</a>
+
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex gap-2">
+<button class="p-2 text-white/80 hover:bg-white/10 rounded-full transition-colors cursor-pointer">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-white/80 hover:bg-white/10 rounded-full transition-colors cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-8 w-px bg-white/20"></div>
+<div class="flex items-center gap-3">
+<span class="font-label-md text-label-md text-white/80">Staff Profile</span>
+<img alt="Staff Profile" class="w-8 h-8 rounded-full bg-surface-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX8VsGO6hKCiA2xjICT8obpOdAijBKmb1NKIf7SnRorUfxQ5Zb6HlKF_Tq9pIeuCUNZvMuJ9aKW4VoinZxzbQM4-ZTc5gEjiqk4dHUazK6tHFXh3YTZQiDKl2IqA1iIh4thdIHz5b4pNfJsfw9FUnZ9hl5gheGq48YqwVTXBQb4G0Gp_bBHGq0CIj1CTqD0STCIhMJoqnTXJU3kv89VCie-rOvS4EYwWpT-zvq50WzqE0pBtHWWj3G4DVFBezUua9Dx23jMZsZ7mI">
+<button class="font-label-md text-label-md text-white font-bold cursor-pointer active:opacity-70">Logout</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-16 h-screen w-full flex flex-col relative overflow-hidden">
+<!-- Map Canvas (Placeholder) -->
+<div class="absolute inset-0 bg-[#EEF2FF] z-0">
+<img class="w-full h-full object-cover opacity-60 grayscale-[20%] brightness-[105%]" data-alt="A high-resolution, professionally stylized medical map showing a clean metropolitan grid in light blue and soft white tones. Minimalist iconography dots the landscape, representing clinical collection points. The lighting is bright and clinically pure, consistent with a modern healthcare laboratory interface. The aesthetic is corporate minimalist with low-contrast grid lines and a soft, professional atmosphere." data-location="San Francisco" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEebmRXfNblSaJicu7PL6SekRPlCLTyxgljfjrdVDBQs226dndbRe-EqPbLJn6bNpwTLGtRHN3HgTAJNTezBHo6slB6jHp9HKnsjeuurE9UlBA6guosWCcSCpCdXvt2i6qqiP7ec1jBsxDl8UqPxtIOPRLeyG48KirFNr5uVcXofG8X3eOKgPmkfvTU7bQFd8Q0sT5meapv4hPqzBm4SWgfxEazeINNYqTDihDSyJR-caxuf8AWGXegEL8QxtnWPb-qL7I1MN9sXg">
+<div class="absolute inset-0 map-gradient-overlay pointer-events-none"></div>
+<!-- Custom Markers -->
+<!-- Fixed Center 1 -->
+<div class="absolute top-[35%] left-[42%] group cursor-pointer">
+<div class="relative">
+<div class="absolute -inset-4 bg-primary/20 rounded-full animate-ping opacity-75"></div>
+<div class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white relative z-10">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">local_hospital</span>
+</div>
+</div>
+</div>
+<!-- Mobile Hub 1 -->
+<div class="absolute top-[55%] left-[58%] group cursor-pointer">
+<div class="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white relative z-10">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+</div>
+<!-- Info Popup -->
+<div class="absolute bottom-12 left-1/2 -translate-x-1/2 w-64 glass-panel p-4 rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-0.5 bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold rounded uppercase tracking-wider">Mobile Hub</span>
+<span class="text-error text-[10px] font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-error rounded-full"></span> BUSY
+                        </span>
+</div>
+<h4 class="font-headline-sm text-body-lg text-on-surface mb-1">Mission District Unit B</h4>
+<p class="text-on-surface-variant text-[12px] mb-3 leading-tight">Current capacity: 84% filled. Scheduled departure: 16:30 PST.</p>
+<div class="flex items-center gap-2 pt-2 border-t border-outline-variant">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span class="text-[11px] font-medium text-on-surface-variant">Expires in 2h 14m</span>
+</div>
+</div>
+</div>
+<!-- Fixed Center 2 -->
+<div class="absolute top-[48%] left-[25%] group cursor-pointer">
+<div class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white relative z-10">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">local_hospital</span>
+</div>
+</div>
+</div>
+<!-- Overlays -->
+<div class="relative z-10 p-margin-page flex flex-col h-full pointer-events-none">
+<!-- Header & Search -->
+<div class="flex justify-between items-start pointer-events-auto">
+<div class="glass-panel p-4 rounded-xl w-96">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-1">Donor Community Map</h1>
+<p class="font-body-md text-on-surface-variant mb-4">Tracking 14 collection points across the region.</p>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="Search by zip, district, or unit ID..." type="text">
+</div>
+</div>
+<button class="pointer-events-auto flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-lg shadow-lg hover:brightness-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add_location_alt</span>
+<span class="">Add New Collection Point</span>
+</button>
+</div>
+<!-- Bottom Left Controls -->
+<div class="mt-auto flex gap-4 pointer-events-auto">
+<!-- Legend -->
+<div class="glass-panel p-4 rounded-xl space-y-3">
+<h5 class="text-label-md font-bold text-on-surface-variant uppercase tracking-widest mb-1">Filter Legend</h5>
+<div class="flex items-center justify-between gap-8 group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">local_hospital</span>
+</div>
+<span class="font-label-md text-on-surface">Fixed Centers</span>
+</div>
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox">
+</div>
+<div class="flex items-center justify-between gap-8 group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-secondary text-white rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">local_shipping</span>
+</div>
+<span class="font-label-md text-on-surface">Mobile Hubs</span>
+</div>
+<input checked="" class="rounded text-secondary focus:ring-secondary" type="checkbox">
+</div>
+</div>
+<!-- Stats Overview -->
+<div class="glass-panel p-4 rounded-xl flex gap-8">
+<div class="border-r border-outline-variant pr-8">
+<p class="text-label-md text-outline mb-1">Active Hubs</p>
+<p class="font-headline-md text-primary">08</p>
+</div>
+<div class="border-r border-outline-variant pr-8">
+<p class="text-label-md text-outline mb-1">Today's Intake</p>
+<p class="font-headline-md text-secondary">42.5 L</p>
+</div>
+<div>
+<p class="text-label-md text-outline mb-1">Live Donors</p>
+<p class="font-headline-md text-tertiary">124</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Float Map Actions -->
+<div class="absolute right-6 top-24 flex flex-col gap-2 z-20 pointer-events-auto">
+<button class="w-12 h-12 bg-surface border border-outline-variant rounded-xl flex items-center justify-center text-on-surface-variant shadow-md hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="w-12 h-12 bg-surface border border-outline-variant rounded-xl flex items-center justify-center text-on-surface-variant shadow-md hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="w-12 h-12 bg-surface border border-outline-variant rounded-xl flex items-center justify-center text-on-surface-variant shadow-md hover:bg-surface-container transition-colors mt-4">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+<button class="w-12 h-12 bg-surface border border-outline-variant rounded-xl flex items-center justify-center text-on-surface-variant shadow-md hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">layers</span>
+</button>
+</div>
+</main>
+<script>
+        // Micro-interaction for markers
+        document.querySelectorAll('.group').forEach(marker => {
+            marker.addEventListener('mouseenter', () => {
+                // Future expansion: dynamic data loading
+            });
+        });
+
+        // Simple mock search highlighting
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('input', (e) => {
+            console.log('Filtering map for:', e.target.value);
+        });
+    </script>
+
+
+
+
+</body></html>

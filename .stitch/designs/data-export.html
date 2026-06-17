@@ -1,0 +1,454 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Data Export | MilkBank OS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#23005c",
+                        "on-secondary": "#ffffff",
+                        "primary": "#6a48b9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#85145a",
+                        "on-secondary-fixed": "#001c39",
+                        "secondary": "#0060ac",
+                        "on-surface-variant": "#494552",
+                        "inverse-surface": "#213145",
+                        "secondary-fixed": "#d4e3ff",
+                        "tertiary": "#a43073",
+                        "on-primary-fixed-variant": "#512ea0",
+                        "outline": "#7a7584",
+                        "tertiary-fixed": "#ffd8e7",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#cbc3d4",
+                        "secondary-container": "#64a8fe",
+                        "tertiary-fixed-dim": "#ffafd3",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "inverse-primary": "#d0bcff",
+                        "on-primary-container": "#3f168d",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#e9ddff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-tint": "#6a48b9",
+                        "on-secondary-container": "#003c70",
+                        "on-surface": "#0b1c30",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#3d0026",
+                        "background": "#f8f9ff",
+                        "on-tertiary-container": "#6b0046",
+                        "surface-container": "#e5eeff",
+                        "surface": "#f8f9ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "tertiary-container": "#f371b5",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#d0bcff",
+                        "on-secondary-fixed-variant": "#004883",
+                        "primary-container": "#ab8aff",
+                        "surface-variant": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-page": "24px",
+                        "density-comfortable": "16px",
+                        "gutter": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "density-dense": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "data-tabular": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #EEF2FF;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Main Content Area (Now Full Width) -->
+<main class="min-h-screen">
+<!-- Top App Bar (Updated Colors and Layout) -->
+<header class="fixed top-0 right-0 left-0 h-16 bg-[#23005c] flex justify-between items-center px-6 z-40 border-b border-white/10 text-white">
+<div class="flex items-center gap-8">
+<div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-white leading-tight">MilkBankMS</span></div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-white/70 hover:text-white font-body-md text-body-md h-16 flex items-center transition-colors" href="#">Inventory</a>
+<a class="text-white border-b-2 border-primary-fixed-dim font-bold font-body-md text-body-md h-16 flex items-center" href="#">Data Export</a>
+<a class="text-white/70 hover:text-white font-body-md text-body-md h-16 flex items-center transition-colors" href="#">Beneficiary Data</a>
+<a class="text-white/70 hover:text-white font-body-md text-body-md h-16 flex items-center transition-colors" href="#">Donor Information</a><a class="text-white/70 hover:text-white font-body-md text-body-md h-16 flex items-center transition-colors" href="#">Donor Community Map</a>
+
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-white/70 hover:text-white cursor-pointer transition-colors">notifications</button>
+<button class="material-symbols-outlined text-white/70 hover:text-white cursor-pointer transition-colors">settings</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-white/20 bg-white/10">
+<img alt="Staff Profile" class="h-full w-full object-cover" data-alt="A professional headshot of a female clinical administrator in a bright, modern medical office environment. She is wearing a soft grey blazer over a crisp white medical uniform, looking confidently at the camera with a friendly, professional expression. The background is slightly blurred with soft daylight, reflecting a clean and clinical atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDouD429T9xSInmobPBfEC62MoUNGD6cGMFjrz9UeaxAGjuqnJoEFhpneT1O_5llN-f-vXYV0W0aRhlpbBxVGhQS1wkiZKr0qaZfRJlQmcSJ8sVxyyP1Iy9qg6z0QOafUzg-wcj8_mCBfI0rsw9Kc_727TiAQHcmtdu4To7Z9xPZpo4g6NrJjOOCohuX3GWDCDnaScGC9qLB2jLNKQnNjJgN-3PYELxQIT1RgiESopuutGCm4hoARNHf1-gvyPGyQI3N7-3LUNUIxg">
+</div>
+<button class="font-body-md text-body-md text-white/70 hover:text-white cursor-pointer transition-colors">Logout</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-24 pb-8 px-8 max-w-7xl mx-auto">
+<!-- Bento Layout Container -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Page Title & Description -->
+<div class="col-span-12 mb-2">
+<h2 class="font-headline-md text-headline-md text-on-background">Data Export Hub</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Configure and download clinical data sets for external reporting and research.</p>
+</div>
+<!-- Export Controls Card -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<div class="glass-card rounded-xl p-6 shadow-sm">
+<h3 class="font-headline-sm text-headline-sm mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">tune</span>
+                            Parameters
+                        </h3>
+<div class="space-y-5">
+<!-- Category Filter -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">DATA CATEGORY</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg p-3 font-body-md focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+<option>Donations</option>
+<option>Inventory</option>
+<option>Beneficiary</option>
+<option>Laboratory Results</option>
+</select>
+</div>
+<!-- Date Selectors -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">MONTH</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg p-3 font-body-md focus:ring-2 focus:ring-primary outline-none">
+<option>January</option>
+<option>February</option>
+<option>March</option>
+<option>April</option>
+<option>May</option>
+<option selected="">June</option>
+<option>July</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">YEAR</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg p-3 font-body-md focus:ring-2 focus:ring-primary outline-none">
+<option>2023</option>
+<option selected="">2024</option>
+<option>2025</option>
+</select>
+</div>
+</div>
+<!-- Export Format -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">EXPORT FORMAT</label>
+<div class="grid grid-cols-3 gap-2">
+<button class="flex flex-col items-center justify-center py-3 border-2 border-primary bg-primary-container/10 rounded-lg text-primary font-bold">
+<span class="font-label-md">CSV</span>
+</button>
+<button class="flex flex-col items-center justify-center py-3 border border-outline-variant hover:border-primary rounded-lg text-on-surface-variant hover:text-primary transition-all">
+<span class="font-label-md">PDF</span>
+</button>
+<button class="flex flex-col items-center justify-center py-3 border border-outline-variant hover:border-primary rounded-lg text-on-surface-variant hover:text-primary transition-all">
+<span class="font-label-md">EXCEL</span>
+</button>
+</div>
+</div>
+<!-- Divider -->
+<hr class="border-outline-variant">
+<div class="space-y-4">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-primary/90 active:scale-[0.98] transition-all shadow-md">
+<span class="material-symbols-outlined">download</span>
+                                    Export / Download
+                                </button>
+<button class="w-full bg-white border border-primary text-primary font-bold py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-primary-container/10 transition-all">
+<span class="material-symbols-outlined">print</span>
+                                    Print Label
+                                </button>
+</div>
+</div>
+</div>
+<!-- Row Count Summary -->
+<div class="bg-primary text-white rounded-xl p-6 shadow-sm overflow-hidden relative">
+<div class="relative z-10">
+<p class="font-label-md text-label-md opacity-80 mb-1">CURRENT SELECTION</p>
+<h4 class="font-headline-lg text-headline-lg">1,402 Rows</h4>
+<p class="font-body-md text-body-md opacity-90 mt-2">Ready for synchronization.</p>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] opacity-10 rotate-12">database</span>
+</div>
+</div>
+<!-- Preview Pane Card -->
+<div class="col-span-12 lg:col-span-8">
+<div class="glass-card rounded-xl shadow-sm h-full flex flex-col">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">visibility</span>
+                                Data Preview
+                            </h3>
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md text-label-md">DENSE VIEW</span>
+<span class="material-symbols-outlined text-outline cursor-pointer">fullscreen</span>
+</div>
+</div>
+<!-- Table Container -->
+<div class="flex-grow overflow-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-surface-container-low z-10">
+<tr>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface uppercase tracking-wider border-b border-outline-variant">Batch ID</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface uppercase tracking-wider border-b border-outline-variant">Donor Name</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface uppercase tracking-wider border-b border-outline-variant">Volume (mL)</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface uppercase tracking-wider border-b border-outline-variant">Status</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface uppercase tracking-wider border-b border-outline-variant">Date</th>
+</tr>
+</thead>
+<tbody class="font-data-tabular text-data-tabular">
+<!-- Row 1 -->
+<tr class="hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8821</td>
+<td class="px-4 py-3">Sarah Henderson</td>
+<td class="px-4 py-3">240</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">02 Jun 2024</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-surface-container-low/30 hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8822</td>
+<td class="px-4 py-3">Elena Rodriguez</td>
+<td class="px-4 py-3">315</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">02 Jun 2024</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8823</td>
+<td class="px-4 py-3">Jessica Smith</td>
+<td class="px-4 py-3">180</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">Flagged</span>
+</td>
+<td class="px-4 py-3">03 Jun 2024</td>
+</tr>
+<!-- Row 4 -->
+<tr class="bg-surface-container-low/30 hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8824</td>
+<td class="px-4 py-3">Maya Patel</td>
+<td class="px-4 py-3">420</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">03 Jun 2024</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8825</td>
+<td class="px-4 py-3">Claire Thompson</td>
+<td class="px-4 py-3">290</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">04 Jun 2024</td>
+</tr>
+<!-- Row 6 -->
+<tr class="bg-surface-container-low/30 hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8826</td>
+<td class="px-4 py-3">Amara Okafor</td>
+<td class="px-4 py-3">350</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">04 Jun 2024</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8827</td>
+<td class="px-4 py-3">Sophia Lee</td>
+<td class="px-4 py-3">210</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Pending</span>
+</td>
+<td class="px-4 py-3">05 Jun 2024</td>
+</tr>
+<!-- Row 8 -->
+<tr class="bg-surface-container-low/30 hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8828</td>
+<td class="px-4 py-3">Isabella Garcia</td>
+<td class="px-4 py-3">280</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">05 Jun 2024</td>
+</tr>
+<!-- Row 9 -->
+<tr class="hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8829</td>
+<td class="px-4 py-3">Fiona Gallagher</td>
+<td class="px-4 py-3">300</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">06 Jun 2024</td>
+</tr>
+<!-- Row 10 -->
+<tr class="bg-surface-container-low/30 hover:bg-primary-container/5 transition-colors border-b border-outline-variant">
+<td class="px-4 py-3 text-primary font-bold">#BN-8830</td>
+<td class="px-4 py-3">Zara Ahmed</td>
+<td class="px-4 py-3">415</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Verified</span>
+</td>
+<td class="px-4 py-3">06 Jun 2024</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="p-4 bg-surface-container-low flex justify-between items-center rounded-b-xl border-t border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface-variant">Showing 1-10 of 1,402 entries</span>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-outline-variant/20 disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="px-3 py-1 rounded bg-primary text-white font-bold text-sm">1</button>
+<button class="px-3 py-1 rounded hover:bg-outline-variant/20 text-sm">2</button>
+<button class="px-3 py-1 rounded hover:bg-outline-variant/20 text-sm">3</button>
+<span class="px-1">...</span>
+<button class="px-3 py-1 rounded hover:bg-outline-variant/20 text-sm">141</button>
+<button class="p-1 rounded hover:bg-outline-variant/20">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Info Cards (Asymmetric Bottom Row) -->
+<div class="col-span-12 md:col-span-6 lg:col-span-3">
+<div class="bg-white p-6 rounded-xl border border-outline-variant flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-secondary bg-secondary-fixed/30 p-2 rounded-lg">history</span>
+<span class="font-label-md text-blue-600">NEWEST</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Last Exported</p>
+<p class="font-headline-sm text-headline-sm">2 hours ago</p>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Donations_June_2024.csv</p>
+</div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-6 lg:col-span-3">
+<div class="bg-white p-6 rounded-xl border border-outline-variant flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-tertiary bg-tertiary-fixed/30 p-2 rounded-lg">security</span>
+<span class="font-label-md text-tertiary">ENCRYPTED</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Data Security</p>
+<p class="font-headline-sm text-headline-sm">AES-256 Bit</p>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">HIPAA Compliant Tunneling</p>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-6">
+<div class="bg-on-primary-fixed text-white p-6 rounded-xl flex items-center gap-6">
+<div class="h-16 w-16 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-3xl">info</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm">Need a Custom Dataset?</h4>
+<p class="font-body-md text-body-md opacity-80">If you require specific filtering that is not available in the dropdowns, please contact the IT Laboratory Department for SQL-level query requests.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.style.transform = 'scale(0.98)';
+            });
+            el.addEventListener('mouseup', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simple format selection logic
+        const formatButtons = document.querySelectorAll('.grid-cols-3 button');
+        formatButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                formatButtons.forEach(b => {
+                    b.classList.remove('border-2', 'border-primary', 'bg-primary-container/10', 'text-primary', 'font-bold');
+                    b.classList.add('border', 'border-outline-variant', 'text-on-surface-variant');
+                });
+                btn.classList.add('border-2', 'border-primary', 'bg-primary-container/10', 'text-primary', 'font-bold');
+                btn.classList.remove('border', 'border-outline-variant', 'text-on-surface-variant');
+            });
+        });
+    </script>
+
+
+
+
+</body></html>

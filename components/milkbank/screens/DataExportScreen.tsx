@@ -1,0 +1,119 @@
+"use client";
+
+import { useState } from "react";
+import { AppShell } from "@/components/milkbank/layout/AppShell";
+import { Icon } from "@/components/milkbank/ui/Icon";
+import { StatusChip } from "@/components/milkbank/ui/StatusChip";
+import { exportJobs } from "@/lib/data/mockData";
+
+export interface DataExportScreenProps {}
+
+export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
+  const [format, setFormat] = useState("CSV");
+  const [dataset, setDataset] = useState("inventory");
+
+  return (
+    <AppShell activeSlug="data-export">
+      <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
+        <div className="mx-auto grid max-w-[1440px] gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-on-surface">Data Export Hub</h2>
+              <p className="text-sm text-on-surface-variant">
+                Generate compliant clinical datasets for reporting and audit.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
+              <h3 className="mb-6 flex items-center gap-2 text-lg font-semibold">
+                <Icon name="tune" className="text-primary" />
+                Export Configuration
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase text-on-surface-variant">
+                    Dataset
+                  </label>
+                  <select
+                    value={dataset}
+                    onChange={(e) => setDataset(e.target.value)}
+                    className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm"
+                  >
+                    <option value="inventory">Inventory & Lab Results</option>
+                    <option value="donors">Donor Registry</option>
+                    <option value="dispensing">Dispensing Records</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase text-on-surface-variant">
+                    Format
+                  </label>
+                  <select
+                    value={format}
+                    onChange={(e) => setFormat(e.target.value)}
+                    className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm"
+                  >
+                    <option value="CSV">CSV</option>
+                    <option value="XLSX">XLSX</option>
+                    <option value="JSON">JSON</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary-container px-5 py-2.5 text-sm font-semibold text-white"
+              >
+                <Icon name="download" />
+                Generate Export
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                <Icon name="history" />
+                Recent Exports
+              </h3>
+              <div className="space-y-3">
+                {exportJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="flex flex-col gap-3 rounded-lg border border-outline-variant/30 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="font-semibold text-on-surface">{job.dataset}</p>
+                      <p className="text-sm text-on-surface-variant">
+                        {job.format} · {job.rows} rows · {job.requestedAt}
+                      </p>
+                    </div>
+                    <StatusChip label={job.statusLabel} variant={job.status} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <aside className="space-y-4">
+            <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-6">
+              <p className="text-xs font-semibold uppercase text-on-surface-variant">
+                Preview Rows
+              </p>
+              <p className="mt-2 text-3xl font-bold text-on-surface">1,402 Rows</p>
+            </div>
+            <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
+              <p className="text-xs font-semibold uppercase text-on-surface-variant">
+                Encryption
+              </p>
+              <p className="mt-2 text-xl font-semibold">AES-256 Bit</p>
+            </div>
+            <div className="rounded-xl border border-primary/30 bg-primary-container/10 p-6">
+              <h4 className="font-semibold text-on-surface">Need a Custom Dataset?</h4>
+              <p className="mt-2 text-sm text-on-surface-variant">
+                Contact the data team for bespoke regulatory exports.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </AppShell>
+  );
+}

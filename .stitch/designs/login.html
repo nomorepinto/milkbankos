@@ -1,0 +1,237 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MilkBankMS - Clinical Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #EEF2FF;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .clinical-shadow {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .glass-background {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed": "#23005c",
+                      "on-secondary": "#ffffff",
+                      "primary": "#6a48b9",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#85145a",
+                      "on-secondary-fixed": "#001c39",
+                      "secondary": "#0060ac",
+                      "on-surface-variant": "#494552",
+                      "inverse-surface": "#213145",
+                      "secondary-fixed": "#d4e3ff",
+                      "tertiary": "#a43073",
+                      "on-primary-fixed-variant": "#512ea0",
+                      "outline": "#7a7584",
+                      "tertiary-fixed": "#ffd8e7",
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-primary": "#ffffff",
+                      "outline-variant": "#cbc3d4",
+                      "secondary-container": "#64a8fe",
+                      "tertiary-fixed-dim": "#ffafd3",
+                      "secondary-fixed-dim": "#a4c9ff",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#f8f9ff",
+                      "surface-dim": "#cbdbf5",
+                      "surface-container-low": "#eff4ff",
+                      "on-background": "#0b1c30",
+                      "inverse-primary": "#d0bcff",
+                      "on-primary-container": "#3f168d",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#e9ddff",
+                      "surface-container-high": "#dce9ff",
+                      "surface-tint": "#6a48b9",
+                      "on-secondary-container": "#003c70",
+                      "on-surface": "#0b1c30",
+                      "error": "#ba1a1a",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed": "#3d0026",
+                      "background": "#f8f9ff",
+                      "on-tertiary-container": "#6b0046",
+                      "surface-container": "#e5eeff",
+                      "surface": "#f8f9ff",
+                      "surface-container-highest": "#d3e4fe",
+                      "tertiary-container": "#f371b5",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed-dim": "#d0bcff",
+                      "on-secondary-fixed-variant": "#004883",
+                      "primary-container": "#ab8aff",
+                      "surface-variant": "#d3e4fe"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.8rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-page": "24px",
+                      "density-comfortable": "16px",
+                      "gutter": "16px",
+                      "container-max": "1440px",
+                      "unit": "4px",
+                      "density-dense": "8px"
+              },
+              "fontFamily": {
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "body-md": ["Plus Jakarta Sans"],
+                      "body-lg": ["Plus Jakarta Sans"],
+                      "label-md": ["Plus Jakarta Sans"],
+                      "headline-sm": ["Plus Jakarta Sans"],
+                      "data-tabular": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 sm:p-0">
+<div class="w-full max-w-5xl flex flex-col md:flex-row bg-white rounded-xl overflow-hidden clinical-shadow border border-outline-variant/30">
+<!-- Left Side: Visual/Branding -->
+<div class="hidden md:flex md:w-1/2 bg-on-primary-fixed relative overflow-hidden items-center justify-center p-12">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#ab8aff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+</div>
+<div class="z-10 text-center">
+<div class="flex flex-col items-center gap-6">
+<div class="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white ring-8 ring-primary/20">
+<span class="material-symbols-outlined !text-5xl" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div class="space-y-2">
+<h1 class="font-headline-lg text-headline-lg text-white">MilkBankMS</h1>
+<p class="font-body-md text-body-md text-primary-fixed-dim/80 max-w-xs mx-auto">The MilkBankMS precision standard for donor management and human milk pasteurization tracking.</p>
+</div>
+</div>
+<div class="mt-12 grid grid-cols-2 gap-4">
+<div class="bg-primary-fixed-dim/10 p-4 rounded-lg border border-primary-fixed-dim/20">
+<span class="material-symbols-outlined text-primary-fixed-dim mb-2">verified_user</span>
+<p class="font-label-md text-label-md text-white">Clinical Compliance</p>
+</div>
+<div class="bg-primary-fixed-dim/10 p-4 rounded-lg border border-primary-fixed-dim/20">
+<span class="material-symbols-outlined text-primary-fixed-dim mb-2">biotech</span>
+<p class="font-label-md text-label-md text-white">Batch Precision</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side: Login Form -->
+<div class="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center">
+<!-- Mobile Header -->
+<div class="md:hidden flex flex-col items-center mb-8">
+<div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white mb-4">
+<span class="material-symbols-outlined !text-3xl" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm text-on-background">Human Milk Bank</h1>
+</div>
+<div class="mb-8">
+<h2 class="font-headline-sm text-headline-sm text-on-background">System Access</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Please authenticate to access the clinical dashboard.</p>
+</div>
+<!-- Error Banner -->
+<div class="hidden mb-6 flex items-center gap-3 p-4 bg-error-container text-on-error-container rounded-lg border border-error/20" id="errorBanner">
+<span class="material-symbols-outlined text-error">report</span>
+<p class="font-body-md text-body-md">Invalid credentials. Please verify your email and password.</p>
+</div>
+<form class="space-y-6" onsubmit="return handleLogin(event)">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant block" for="email">EMAIL ADDRESS</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">mail</span>
+</div>
+<input class="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg outline-none transition-all font-body-md text-body-md text-on-surface" id="email" placeholder="staff.name@milkbank.org" required="" type="email">
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-on-surface-variant" for="password">PASSWORD</label>
+<a class="font-label-md text-label-md text-primary hover:underline transition-all" href="#">Forgot Password?</a>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<input class="w-full pl-10 pr-12 py-3 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg outline-none transition-all font-body-md text-body-md text-on-surface" id="password" placeholder="••••••••" required="" type="password">
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline hover:text-primary transition-colors" onclick="togglePassword()" type="button">
+<span class="material-symbols-outlined" id="passwordIcon">visibility</span>
+</button>
+</div>
+</div>
+<div class="pt-2">
+<button class="w-full bg-primary-container text-on-primary-container font-headline-sm text-headline-sm py-4 rounded-lg hover:brightness-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+<span class="">Login</span>
+<span class="material-symbols-outlined">login</span>
+</button>
+</div>
+</form>
+<div class="mt-12 flex flex-col items-center gap-4">
+<div class="w-full flex items-center gap-4">
+<div class="h-px flex-1 bg-outline-variant/30"></div>
+<span class="font-label-md text-label-md text-outline">OR</span>
+<div class="h-px flex-1 bg-outline-variant/30"></div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg border border-primary text-primary font-label-md text-label-md hover:bg-primary/5 transition-colors" type="button">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">volunteer_activism</span>
+                    Register as a Donor
+                </button>
+</div>
+<footer class="mt-auto pt-8 text-center">
+<p class="font-label-md text-label-md text-outline">© 2024 MilkBankMS Systems. V2.4.1-Stable</p>
+</footer>
+</div>
+</div>
+<script>
+        function togglePassword() {
+            const pwd = document.getElementById('password');
+            const icon = document.getElementById('passwordIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                pwd.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const banner = document.getElementById('errorBanner');
+            // Mock error for demonstration
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 5000);
+            return false;
+        }
+    </script>
+
+
+</body></html>

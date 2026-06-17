@@ -1,0 +1,32 @@
+{
+  "theme": {
+    "colors": {
+      "primary": "#6a48b9",
+      "primaryContainer": "#ab8aff",
+      "primaryDark": "#23005c",
+      "secondary": "#0060ac",
+      "secondaryContainer": "#64a8fe",
+      "tertiary": "#a43073",
+      "verified": "#60a5fa",
+      "pending": "#ab8aff",
+      "fail": "#f472b6",
+      "background": {
+        "light": "#f8f9ff",
+        "page": "#eef2ff",
+        "elevated": "#ffffff"
+      },
+      "onSurface": "#0b1c30",
+      "onSurfaceVariant": "#494552",
+      "outlineVariant": "#cbc3d4"
+    },
+    "typography": {
+      "display": ["Plus Jakarta Sans", "sans-serif"],
+      "icons": "Material Symbols Outlined"
+    },
+    "spacing": {
+      "header-h": "64px",
+      "container-max": "1440px",
+      "gutter": "16px"
+    }
+  }
+}
