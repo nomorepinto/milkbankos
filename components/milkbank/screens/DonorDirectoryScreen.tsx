@@ -10,6 +10,7 @@ import { StatusChip } from "@/components/milkbank/ui/StatusChip";
 import {
   activityLogs,
   donorRows,
+  donorDirectoryStats,
 } from "@/lib/data/mockData";
 
 export interface DonorDirectoryScreenProps {}
@@ -94,29 +95,28 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
             </div>
           </div>
 
-          {/* Stats Bento (Quick Clinical Context) */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatCard
               label="Active Donors"
-              value="142"
+              value={donorDirectoryStats.activeDonors}
               icon="group"
               accent="primary"
             />
             <StatCard
               label="Total Vol (Month)"
-              value="1,240 L"
+              value={donorDirectoryStats.totalVolume}
               icon="water_drop"
               accent="secondary"
             />
             <StatCard
               label="Pending Certs"
-              value="08"
+              value={donorDirectoryStats.newThisMonth}
               icon="verified"
               accent="neutral"
             />
             <StatCard
               label="Due Screening"
-              value="12"
+              value={donorDirectoryStats.dueScreening}
               icon="warning"
               accent="tertiary"
             />
@@ -408,7 +408,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
                     <Icon name="location_on" filled className="text-primary text-[44px]" />
                     <div className="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full -mt-2 font-bold shadow-md">
-                      142 Donors
+                      {donorDirectoryStats.activeDonors} Donors
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
-import { beneficiaryFormDefaults } from "@/lib/data/mockData";
+import { beneficiaryFormDefaults, beneficiaryFormSections } from "@/lib/data/mockData";
 
 export interface BeneficiaryRegistrationScreenProps {}
 
@@ -29,24 +29,7 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
             </div>
           </div>
 
-          {[
-            {
-              title: "Infant Information",
-              fields: ["Infant Name", "Date of Birth", "Gestational Age", "Medical Record #"],
-            },
-            {
-              title: "Clinical Site",
-              fields: ["Hospital / NICU", "Attending Physician", "Ward / Room"],
-            },
-            {
-              title: "Guardian Info",
-              fields: ["Guardian Name", "Relationship", "Contact Phone"],
-            },
-            {
-              title: "Feeding Order",
-              fields: ["Daily Volume (ml)", "Frequency", "Special Instructions"],
-            },
-          ].map((section) => (
+          {beneficiaryFormSections.map((section) => (
             <section
               key={section.title}
               className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6"

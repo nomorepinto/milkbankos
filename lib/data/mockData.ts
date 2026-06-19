@@ -359,3 +359,230 @@ export const activityLogs = [
     time: "Yesterday",
   },
 ];
+
+export type SessionLog = {
+  id: string;
+  time: string;
+  donorName: string;
+  donorId: string;
+  volumeMl: number;
+  status: "verified" | "fail";
+  statusLabel: string;
+};
+
+export const terminalSessionLogs: SessionLog[] = [
+  {
+    id: "LOG-01",
+    time: "10:45 AM",
+    donorName: "Jessica Thompson",
+    donorId: "DON-8821",
+    volumeMl: 240,
+    status: "verified",
+    statusLabel: "Verified",
+  },
+  {
+    id: "LOG-02",
+    time: "09:12 AM",
+    donorName: "Amanda Lee",
+    donorId: "DON-7712",
+    volumeMl: 180,
+    status: "fail",
+    statusLabel: "Flagged",
+  },
+];
+
+export type TerminalBatch = {
+  id: string;
+  entries: number;
+  volumeL: number;
+  status: "OPEN" | "SHIPPED";
+  timeLabel?: string;
+};
+
+export const terminalBatches: TerminalBatch[] = [
+  {
+    id: "B-202310-04",
+    entries: 6,
+    volumeL: 1.4,
+    status: "OPEN",
+  },
+  {
+    id: "B-202310-03",
+    entries: 12,
+    volumeL: 3.2,
+    status: "SHIPPED",
+    timeLabel: "Handed over to logistics at 08:30 AM",
+  },
+];
+
+export const terminalDefaultDonor = { name: "Sarah J. Miller", id: "9928" };
+
+export const terminalSearchDonors = [
+  { name: "Jessica Thompson", id: "8821" },
+  { name: "Amanda Lee", id: "7712" },
+  { name: "Chloe Henderson", id: "3109" },
+  { name: "Rebecca Bloom", id: "2201" },
+];
+
+export type MapPin = {
+  id: string;
+  name: string;
+  status: "verified" | "neutral" | "fail";
+  statusLabel: string;
+  lastDonation: string;
+  top: string;
+  left: string;
+};
+
+export const mapPins: MapPin[] = [
+  {
+    id: "DON-8821",
+    name: "Elena Sorvino",
+    status: "verified",
+    statusLabel: "Active",
+    lastDonation: "Oct 12, 2023",
+    top: "30%",
+    left: "45%",
+  },
+  {
+    id: "DON-7712",
+    name: "Maya Patel",
+    status: "verified",
+    statusLabel: "Active",
+    lastDonation: "Oct 09, 2023",
+    top: "38%",
+    left: "58%",
+  },
+  {
+    id: "DON-3109",
+    name: "Chloe Henderson",
+    status: "neutral",
+    statusLabel: "Inactive",
+    lastDonation: "Sep 28, 2023",
+    top: "60%",
+    left: "35%",
+  },
+  {
+    id: "DON-2201",
+    name: "Rebecca Bloom",
+    status: "verified",
+    statusLabel: "Active",
+    lastDonation: "Oct 14, 2023",
+    top: "22%",
+    left: "28%",
+  },
+  {
+    id: "DON-1194",
+    name: "Jessica Sterling",
+    status: "fail",
+    statusLabel: "Flagged",
+    lastDonation: "Expired Labs",
+    top: "45%",
+    left: "65%",
+  },
+];
+
+export const mapLegendStats = {
+  active: 128,
+  inactive: 42,
+  unverified: 15,
+};
+
+export const regionalActivity = [
+  { name: "Metropolitan North", percentage: "64%" },
+  { name: "Central Valley", percentage: "32%" },
+];
+
+export type LogisticsPoint = {
+  id: string;
+  name: string;
+  type: "hospital" | "shipping";
+  status: "active" | "busy" | "idle";
+  capacity?: string;
+  departure?: string;
+  expiry?: string;
+  top: string;
+  left: string;
+};
+
+export const logisticsPoints: LogisticsPoint[] = [
+  {
+    id: "FC-01",
+    name: "St. Jude Medical Plaza",
+    type: "hospital",
+    status: "active",
+    top: "35%",
+    left: "42%",
+  },
+  {
+    id: "FC-02",
+    name: "City General Hospital",
+    type: "hospital",
+    status: "active",
+    top: "48%",
+    left: "25%",
+  },
+  {
+    id: "MH-01",
+    name: "Mission District Unit B",
+    type: "shipping",
+    status: "busy",
+    capacity: "84% filled",
+    departure: "16:30 PST",
+    expiry: "2h 14m",
+    top: "55%",
+    left: "58%",
+  },
+  {
+    id: "MH-02",
+    name: "Bayview Collection Hub",
+    type: "shipping",
+    status: "idle",
+    capacity: "32% filled",
+    departure: "18:00 PST",
+    expiry: "3h 45m",
+    top: "65%",
+    left: "70%",
+  },
+];
+
+export const logisticsStats = {
+  activeHubs: "08",
+  todayIntake: "42.5 L",
+  liveDonors: "124",
+};
+
+export type FormSection = {
+  title: string;
+  fields: string[];
+};
+
+export const beneficiaryFormSections: FormSection[] = [
+  {
+    title: "Infant Information",
+    fields: ["Infant Name", "Date of Birth", "Gestational Age", "Medical Record #"],
+  },
+  {
+    title: "Clinical Site",
+    fields: ["Hospital / NICU", "Attending Physician", "Ward / Room"],
+  },
+  {
+    title: "Guardian Info",
+    fields: ["Guardian Name", "Relationship", "Contact Phone"],
+  },
+  {
+    title: "Feeding Order",
+    fields: ["Daily Volume (ml)", "Frequency", "Special Instructions"],
+  },
+];
+
+export const exportHubStats = {
+  previewRows: "1,402 Rows",
+  encryption: "AES-256 Bit",
+};
+
+export const systemConfig = {
+  version: "V2.4.1-Stable",
+  copyright: "© 2024 MilkBankMS Systems",
+};
+

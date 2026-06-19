@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
-import { exportJobs } from "@/lib/data/mockData";
+import { exportJobs, exportHubStats } from "@/lib/data/mockData";
 
 export interface DataExportScreenProps {}
 
@@ -97,13 +97,13 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
               <p className="text-xs font-semibold uppercase text-on-surface-variant">
                 Preview Rows
               </p>
-              <p className="mt-2 text-3xl font-bold text-on-surface">1,402 Rows</p>
+              <p className="mt-2 text-3xl font-bold text-on-surface">{exportHubStats.previewRows}</p>
             </div>
             <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
               <p className="text-xs font-semibold uppercase text-on-surface-variant">
                 Encryption
               </p>
-              <p className="mt-2 text-xl font-semibold">AES-256 Bit</p>
+              <p className="mt-2 text-xl font-semibold">{exportHubStats.encryption}</p>
             </div>
             <div className="rounded-xl border border-primary/30 bg-primary-container/10 p-6">
               <h4 className="font-semibold text-on-surface">Need a Custom Dataset?</h4>

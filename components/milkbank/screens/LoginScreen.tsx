@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@/components/milkbank/ui/Icon";
+import { systemConfig } from "@/lib/data/mockData";
 
 export interface LoginScreenProps {}
 
@@ -160,7 +161,7 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
 
           <footer className="mt-auto pt-8 text-center">
             <p className="text-xs font-semibold uppercase text-outline">
-              © 2024 MilkBankMS Systems. V2.4.1-Stable
+              {systemConfig.copyright}. {systemConfig.version}
             </p>
           </footer>
         </div>

@@ -8,63 +8,12 @@ import { Icon } from "@/components/milkbank/ui/Icon";
 
 export interface DonorCommunityMapScreenProps {}
 
-type Pin = {
-  id: string;
-  name: string;
-  status: "verified" | "neutral" | "fail";
-  statusLabel: string;
-  lastDonation: string;
-  top: string;
-  left: string;
-};
-
-const INITIAL_PINS: Pin[] = [
-  {
-    id: "DON-8821",
-    name: "Elena Sorvino",
-    status: "verified",
-    statusLabel: "Active",
-    lastDonation: "Oct 12, 2023",
-    top: "30%",
-    left: "45%",
-  },
-  {
-    id: "DON-7712",
-    name: "Maya Patel",
-    status: "verified",
-    statusLabel: "Active",
-    lastDonation: "Oct 09, 2023",
-    top: "38%",
-    left: "58%",
-  },
-  {
-    id: "DON-3109",
-    name: "Chloe Henderson",
-    status: "neutral",
-    statusLabel: "Inactive",
-    lastDonation: "Sep 28, 2023",
-    top: "60%",
-    left: "35%",
-  },
-  {
-    id: "DON-2201",
-    name: "Rebecca Bloom",
-    status: "verified",
-    statusLabel: "Active",
-    lastDonation: "Oct 14, 2023",
-    top: "22%",
-    left: "28%",
-  },
-  {
-    id: "DON-1194",
-    name: "Jessica Sterling",
-    status: "fail",
-    statusLabel: "Flagged",
-    lastDonation: "Expired Labs",
-    top: "45%",
-    left: "65%",
-  },
-];
+import {
+  mapPins,
+  mapLegendStats,
+  regionalActivity,
+  type MapPin as Pin,
+} from "@/lib/data/mockData";
 
 export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreenProps>) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,7 +22,7 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
   const [hoveredPinId, setHoveredPinId] = useState<string | null>(null);
   const [showFiltersDropdown, setShowFiltersDropdown] = useState(false);
 
-  const filteredPins = INITIAL_PINS.filter((pin) => {
+  const filteredPins = mapPins.filter((pin) => {
     const matchesSearch =
       pin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pin.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -200,15 +149,15 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-secondary" />
-                <span className="text-xs font-semibold text-on-surface">Active (128)</span>
+                <span className="text-xs font-semibold text-on-surface">Active ({mapLegendStats.active})</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-outline" />
-                <span className="text-xs font-semibold text-on-surface">Inactive (42)</span>
+                <span className="text-xs font-semibold text-on-surface">Inactive ({mapLegendStats.inactive})</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-tertiary-container" />
-                <span className="text-xs font-semibold text-on-surface">Unverified (15)</span>
+                <span className="text-xs font-semibold text-on-surface">Unverified ({mapLegendStats.unverified})</span>
               </div>
             </div>
           </div>
@@ -281,24 +230,20 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
               <Icon name="trending_up" className="text-secondary" />
             </div>
             <div className="space-y-3">
-              <div>
-                <div className="mb-1 flex justify-between text-[11px]">
-                  <span className="text-on-surface-variant">Metropolitan North</span>
-                  <span className="font-bold text-on-surface">64%</span>
+              {regionalActivity.map((region, idx) => (
+                <div key={region.name}>
+                  <div className="mb-1 flex justify-between text-[11px]">
+                    <span className="text-on-surface-variant">{region.name}</span>
+                    <span className="font-bold text-on-surface">{region.percentage}</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-surface-container">
+                    <div
+                      className={`h-full rounded-full ${idx % 2 === 0 ? "bg-primary" : "bg-secondary"}`}
+                      style={{ width: region.percentage }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-surface-container">
-                  <div className="h-full rounded-full bg-primary" style={{ width: "64%" }} />
-                </div>
-              </div>
-              <div>
-                <div className="mb-1 flex justify-between text-[11px]">
-                  <span className="text-on-surface-variant">Central Valley</span>
-                  <span className="font-bold text-on-surface">32%</span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-surface-container">
-                  <div className="h-full rounded-full bg-secondary" style={{ width: "32%" }} />
-                </div>
-              </div>
+              ))}
             </div>
             <button
               type="button"

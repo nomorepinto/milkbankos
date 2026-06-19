@@ -7,58 +7,11 @@ import { Icon } from "@/components/milkbank/ui/Icon";
 
 export interface CollectionPointLogisticsScreenProps {}
 
-type MapPoint = {
-  id: string;
-  name: string;
-  type: "hospital" | "shipping";
-  status: "active" | "busy" | "idle";
-  capacity?: string;
-  departure?: string;
-  expiry?: string;
-  top: string;
-  left: string;
-};
-
-const INITIAL_POINTS: MapPoint[] = [
-  {
-    id: "FC-01",
-    name: "St. Jude Medical Plaza",
-    type: "hospital",
-    status: "active",
-    top: "35%",
-    left: "42%",
-  },
-  {
-    id: "FC-02",
-    name: "City General Hospital",
-    type: "hospital",
-    status: "active",
-    top: "48%",
-    left: "25%",
-  },
-  {
-    id: "MH-01",
-    name: "Mission District Unit B",
-    type: "shipping",
-    status: "busy",
-    capacity: "84% filled",
-    departure: "16:30 PST",
-    expiry: "2h 14m",
-    top: "55%",
-    left: "58%",
-  },
-  {
-    id: "MH-02",
-    name: "Bayview Collection Hub",
-    type: "shipping",
-    status: "idle",
-    capacity: "32% filled",
-    departure: "18:00 PST",
-    expiry: "3h 45m",
-    top: "65%",
-    left: "70%",
-  },
-];
+import {
+  logisticsPoints,
+  logisticsStats,
+  type LogisticsPoint as MapPoint,
+} from "@/lib/data/mockData";
 
 export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointLogisticsScreenProps>) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,7 +20,7 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
   const [activePointId, setActivePointId] = useState<string | null>(null);
   const [hoveredPointId, setHoveredPointId] = useState<string | null>(null);
 
-  const filteredPoints = INITIAL_POINTS.filter((point) => {
+  const filteredPoints = logisticsPoints.filter((point) => {
     // Search filter
     const matchesSearch =
       point.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -255,15 +208,15 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
               <div className="bg-white/80 border border-slate-500/10 rounded-xl p-4 flex gap-8 shadow-md backdrop-blur-md font-bold">
                 <div className="border-r border-outline-variant/35 pr-8">
                   <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Active Hubs</p>
-                  <p className="text-2xl text-primary font-bold">08</p>
+                  <p className="text-2xl text-primary font-bold">{logisticsStats.activeHubs}</p>
                 </div>
                 <div className="border-r border-outline-variant/35 pr-8">
                   <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Today&apos;s Intake</p>
-                  <p className="text-2xl text-secondary font-bold">42.5 L</p>
+                  <p className="text-2xl text-secondary font-bold">{logisticsStats.todayIntake}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Live Donors</p>
-                  <p className="text-2xl text-tertiary font-bold">124</p>
+                  <p className="text-2xl text-tertiary font-bold">{logisticsStats.liveDonors}</p>
                 </div>
               </div>
 

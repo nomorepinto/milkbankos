@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { APP_NAV_ITEMS, SECONDARY_NAV_ITEMS } from "@/lib/data/navigation";
 import { Icon } from "../ui/Icon";
+import { staffProfile } from "@/lib/data/mockData";
 
 export interface TopNavProps {
   readonly activeSlug?: string;
@@ -84,7 +85,7 @@ export function TopNav({ activeSlug }: TopNavProps) {
           <div className="mx-1 hidden h-8 w-px bg-white/20 sm:block" />
           <div className="flex items-center gap-2 md:gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container text-xs font-bold text-white">
-              DR
+              {staffProfile.avatarInitials}
             </div>
             <Link
               href="/login"

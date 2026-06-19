@@ -4,74 +4,27 @@ import { useState } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { LogisticsSubNav } from "@/components/milkbank/layout/LogisticsSubNav";
 import { Icon } from "@/components/milkbank/ui/Icon";
+import {
+  terminalSessionLogs,
+  terminalBatches,
+  terminalDefaultDonor,
+  terminalSearchDonors,
+  type SessionLog,
+  type TerminalBatch as Batch,
+} from "@/lib/data/mockData";
 
 export interface OnsiteCollectionTerminalScreenProps {}
 
-type SessionLog = {
-  id: string;
-  time: string;
-  donorName: string;
-  donorId: string;
-  volumeMl: number;
-  status: "verified" | "fail";
-  statusLabel: string;
-};
-
-const INITIAL_LOGS: SessionLog[] = [
-  {
-    id: "LOG-01",
-    time: "10:45 AM",
-    donorName: "Jessica Thompson",
-    donorId: "DON-8821",
-    volumeMl: 240,
-    status: "verified",
-    statusLabel: "Verified",
-  },
-  {
-    id: "LOG-02",
-    time: "09:12 AM",
-    donorName: "Amanda Lee",
-    donorId: "DON-7712",
-    volumeMl: 180,
-    status: "fail",
-    statusLabel: "Flagged",
-  },
-];
-
-type Batch = {
-  id: string;
-  entries: number;
-  volumeL: number;
-  status: "OPEN" | "SHIPPED";
-  timeLabel?: string;
-};
-
-const INITIAL_BATCHES: Batch[] = [
-  {
-    id: "B-202310-04",
-    entries: 6,
-    volumeL: 1.4,
-    status: "OPEN",
-  },
-  {
-    id: "B-202310-03",
-    entries: 12,
-    volumeL: 3.2,
-    status: "SHIPPED",
-    timeLabel: "Handed over to logistics at 08:30 AM",
-  },
-];
-
 export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollectionTerminalScreenProps>) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentDonor, setCurrentDonor] = useState({ name: "Sarah J. Miller", id: "9928" });
+  const [currentDonor, setCurrentDonor] = useState(terminalDefaultDonor);
   const [volume, setVolume] = useState("");
   const [temperature, setTemperature] = useState("");
   const [expressionTime, setExpressionTime] = useState("");
   const [milkType, setMilkType] = useState("Standard Mature Milk");
   const [observations, setObservations] = useState("");
-  const [sessionLogs, setSessionLogs] = useState<SessionLog[]>(INITIAL_LOGS);
-  const [batches, setBatches] = useState<Batch[]>(INITIAL_BATCHES);
+  const [sessionLogs, setSessionLogs] = useState<SessionLog[]>(terminalSessionLogs);
+  const [batches, setBatches] = useState<Batch[]>(terminalBatches);
 
   // Walk-In Donor Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,18 +37,15 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
     const lower = val.toLowerCase();
-    if (lower.includes("jessica") || lower.includes("thompson")) {
-      setCurrentDonor({ name: "Jessica Thompson", id: "8821" });
-    } else if (lower.includes("amanda") || lower.includes("lee")) {
-      setCurrentDonor({ name: "Amanda Lee", id: "7712" });
-    } else if (lower.includes("chloe") || lower.includes("henderson")) {
-      setCurrentDonor({ name: "Chloe Henderson", id: "3109" });
-    } else if (lower.includes("rebecca") || lower.includes("bloom")) {
-      setCurrentDonor({ name: "Rebecca Bloom", id: "2201" });
+    const found = terminalSearchDonors.find(
+      (d) => d.name.toLowerCase().includes(lower)
+    );
+    if (found) {
+      setCurrentDonor(found);
     } else if (lower) {
       setCurrentDonor({ name: val, id: "TEMP-" + Math.floor(1000 + Math.random() * 9000) });
     } else {
-      setCurrentDonor({ name: "Sarah J. Miller", id: "9928" });
+      setCurrentDonor(terminalDefaultDonor);
     }
   };
 
