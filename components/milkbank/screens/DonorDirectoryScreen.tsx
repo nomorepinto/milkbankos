@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { DonorSubNav } from "@/components/milkbank/layout/DonorSubNav";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatCard } from "@/components/milkbank/ui/StatCard";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
-import {
-  activityLogs,
-  donorRows,
-  donorDirectoryStats,
-} from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
+
+export interface DonorRow {
+  id: string;
+  name: string;
+  status: any;
+  statusLabel: string;
+  lastDonation: string;
+  totalVolume: string;
+  screeningDue: boolean;
+  contact: string;
+  cycles: number;
+  verification: string;
+  avatarUrl: string;
+}
 
 export interface DonorDirectoryScreenProps {}
 
@@ -21,8 +31,73 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
   const [sortBy, setSortBy] = useState("Last Donation (Newest)");
   const [showFiltersDropdown, setShowFiltersDropdown] = useState(false);
 
+  const [donors, setDonors] = useState<DonorRow[]>([]);
+  const [stats, setStats] = useState({
+    activeDonors: "0",
+    totalVolume: "0 L",
+    newThisMonth: "00",
+    dueScreening: "0",
+  });
+  const [logs, setLogs] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadDirectoryData() {
+      // 1. Fetch donors
+      const { data: dbDonors } = await supabase
+        .from("donor_profiles")
+        .select("*");
+
+      if (dbDonors) {
+        setDonors(dbDonors.map(d => ({
+          id: d.display_id,
+          name: d.full_name,
+          status: d.status,
+          statusLabel: d.status_label,
+          lastDonation: d.last_donation_at || "N/A",
+          totalVolume: `${(d.total_volume_ml / 1000).toFixed(1)} L`,
+          screeningDue: d.screening_due,
+          contact: d.contact_phone || "N/A",
+          cycles: d.donation_cycles,
+          verification: d.verification_note || "N/A",
+          avatarUrl: d.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+        })));
+      }
+
+      // 2. Fetch stats
+      const { data: dbStats } = await supabase
+        .from("view_donor_directory_stats")
+        .select("*")
+        .single();
+
+      if (dbStats) {
+        setStats({
+          activeDonors: String(dbStats.active_donors),
+          totalVolume: `${(dbStats.total_volume_ml / 1000).toFixed(0)} L`,
+          newThisMonth: String(dbStats.new_this_month).padStart(2, '0'),
+          dueScreening: String(dbStats.due_screening)
+        });
+      }
+
+      // 3. Fetch activity logs
+      const { data: dbLogs } = await supabase
+        .from("activity_logs")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (dbLogs) {
+        setLogs(dbLogs.map(l => ({
+          id: l.id,
+          message: l.message,
+          time: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        })));
+      }
+    }
+
+    loadDirectoryData();
+  }, []);
+
   // Filter logic
-  const filteredRows = donorRows.filter((donor) => {
+  const filteredRows = donors.filter((donor) => {
     const matchesSearch =
       donor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       donor.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -98,25 +173,25 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatCard
               label="Active Donors"
-              value={donorDirectoryStats.activeDonors}
+              value={stats.activeDonors}
               icon="group"
               accent="primary"
             />
             <StatCard
               label="Total Vol (Month)"
-              value={donorDirectoryStats.totalVolume}
+              value={stats.totalVolume}
               icon="water_drop"
               accent="secondary"
             />
             <StatCard
               label="Pending Certs"
-              value={donorDirectoryStats.newThisMonth}
+              value={stats.newThisMonth}
               icon="verified"
               accent="neutral"
             />
             <StatCard
               label="Due Screening"
-              value={donorDirectoryStats.dueScreening}
+              value={stats.dueScreening}
               icon="warning"
               accent="tertiary"
             />
@@ -303,7 +378,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
             {/* Pagination */}
             <div className="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/30 flex items-center justify-between">
               <div className="text-on-surface-variant text-xs font-semibold">
-                Showing {sortedRows.length} of {donorRows.length} donors
+                Showing {sortedRows.length} of {donors.length} donors
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -357,7 +432,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
               </div>
               
               <ul className="divide-y divide-outline-variant/10 flex-grow">
-                {activityLogs.map((log) => {
+                {logs.map((log) => {
                   let logIcon = "add_task";
                   let iconColorClass = "text-secondary bg-secondary-container/20";
                   
@@ -408,7 +483,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
                     <Icon name="location_on" filled className="text-primary text-[44px]" />
                     <div className="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full -mt-2 font-bold shadow-md">
-                      {donorDirectoryStats.activeDonors} Donors
+                      {stats.activeDonors} Donors
                     </div>
                   </div>
                 </div>

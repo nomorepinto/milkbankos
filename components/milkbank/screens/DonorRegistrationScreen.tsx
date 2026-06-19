@@ -1,14 +1,90 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
-import { donorRegistrationSteps } from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
+
+const donorRegistrationSteps = [
+  "Personal Profile",
+  "Health Intake",
+  "Consent & Verification",
+];
 
 export interface DonorRegistrationScreenProps {}
 
 export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreenProps>) {
+  const router = useRouter();
   const [step, setStep] = useState(0);
+
+  // Form State
+  const [fullName, setFullName] = useState("");
+  const [dob, setDob] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("donorpassword123");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmitRegistration = async () => {
+    setIsLoading(true);
+    try {
+      const { data: newUser, error: userErr } = await supabase
+        .from("users")
+        .insert({
+          email: email,
+          encrypted_password: password,
+          role: "donor",
+          is_active: true
+        })
+        .select("id")
+        .single();
+
+      if (userErr) {
+        alert("Registration failed: " + userErr.message);
+        return;
+      }
+
+      const displayId = "DON-" + Math.floor(1000 + Math.random() * 9000);
+      const { error: profileErr } = await supabase
+        .from("donor_profiles")
+        .insert({
+          id: newUser.id,
+          display_id: displayId,
+          full_name: fullName,
+          status: "pending",
+          status_label: "Pending",
+          screening_due: true,
+          contact_phone: phone,
+          donation_cycles: 0,
+          verification_note: "Pending Re-cert",
+          region: "Central Valley",
+          area: "Castro",
+          latitude: 37.7609,
+          longitude: -122.4350
+        });
+
+      if (profileErr) {
+        alert("Profile creation failed: " + profileErr.message);
+        return;
+      }
+
+      alert(`Success! Account created under Display ID: ${displayId}`);
+      router.push("/login");
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (step === donorRegistrationSteps.length - 1) {
+      handleSubmitRegistration();
+    } else {
+      setStep((s) => s + 1);
+    }
+  };
 
   return (
     <AppShell activeSlug="donor-registration">
@@ -44,19 +120,43 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
               <>
                 <h2 className="text-2xl font-semibold text-on-surface">Personal Profile</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {["Full Name", "Date of Birth", "Phone Number", "Email Address"].map(
-                    (field) => (
-                      <div key={field} className="space-y-1">
-                        <label className="text-xs font-semibold uppercase text-on-surface-variant">
-                          {field}
-                        </label>
-                        <input
-                          className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
-                          placeholder={`Enter ${field.toLowerCase()}`}
-                        />
-                      </div>
-                    ),
-                  )}
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Full Name</label>
+                    <input
+                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                      placeholder="Enter full name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Date of Birth</label>
+                    <input
+                      type="date"
+                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Phone Number</label>
+                    <input
+                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                      placeholder="Enter phone number"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Email Address</label>
+                    <input
+                      type="email"
+                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                      placeholder="Enter email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
                 </div>
               </>
             ) : null}
@@ -100,7 +200,7 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
             <div className="flex justify-between pt-4">
               <button
                 type="button"
-                disabled={step === 0}
+                disabled={step === 0 || isLoading}
                 onClick={() => setStep((s) => Math.max(0, s - 1))}
                 className="rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary disabled:opacity-40"
               >
@@ -108,12 +208,11 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
               </button>
               <button
                 type="button"
-                onClick={() =>
-                  setStep((s) => Math.min(donorRegistrationSteps.length - 1, s + 1))
-                }
-                className="rounded-lg bg-primary-container px-6 py-2 text-sm font-semibold text-white"
+                disabled={isLoading}
+                onClick={handleNext}
+                className="rounded-lg bg-primary-container px-6 py-2 text-sm font-semibold text-white cursor-pointer"
               >
-                {step === donorRegistrationSteps.length - 1 ? "Submit Registration" : "Continue"}
+                {isLoading ? "Submitting..." : step === donorRegistrationSteps.length - 1 ? "Submit Registration" : "Continue"}
               </button>
             </div>
           </div>

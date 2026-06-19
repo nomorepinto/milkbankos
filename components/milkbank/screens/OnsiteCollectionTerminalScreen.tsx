@@ -1,30 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { LogisticsSubNav } from "@/components/milkbank/layout/LogisticsSubNav";
 import { Icon } from "@/components/milkbank/ui/Icon";
-import {
-  terminalSessionLogs,
-  terminalBatches,
-  terminalDefaultDonor,
-  terminalSearchDonors,
-  type SessionLog,
-  type TerminalBatch as Batch,
-} from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
+
+export interface SessionLog {
+  id: string;
+  time: string;
+  donorName: string;
+  donorId: string;
+  volumeMl: number;
+  status: "verified" | "fail";
+  statusLabel: string;
+}
+
+export interface Batch {
+  id: string;
+  entries: number;
+  volumeL: number;
+  status: "OPEN" | "SHIPPED";
+  timeLabel?: string;
+}
+
+const defaultDonor = { name: "Sarah J. Miller", id: "9928" };
 
 export interface OnsiteCollectionTerminalScreenProps {}
 
 export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollectionTerminalScreenProps>) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentDonor, setCurrentDonor] = useState(terminalDefaultDonor);
+  const [currentDonor, setCurrentDonor] = useState(defaultDonor);
   const [volume, setVolume] = useState("");
   const [temperature, setTemperature] = useState("");
   const [expressionTime, setExpressionTime] = useState("");
   const [milkType, setMilkType] = useState("Standard Mature Milk");
   const [observations, setObservations] = useState("");
-  const [sessionLogs, setSessionLogs] = useState<SessionLog[]>(terminalSessionLogs);
-  const [batches, setBatches] = useState<Batch[]>(terminalBatches);
+  const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
 
   // Walk-In Donor Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,24 +46,75 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
   const [walkInDob, setWalkInDob] = useState("");
   const [walkInInfantAge, setWalkInInfantAge] = useState("");
 
+  async function loadData() {
+    // 1. Fetch batches
+    const { data: dbBatches } = await supabase
+      .from("terminal_batches")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (dbBatches) {
+      setBatches(dbBatches.map((b: any) => ({
+        id: b.id,
+        entries: Number(b.entries),
+        volumeL: Number(b.volume_l),
+        status: b.status,
+        timeLabel: b.time_label || undefined
+      })));
+    }
+
+    // 2. Fetch sessions
+    const { data: dbSessions } = await supabase
+      .from("terminal_sessions")
+      .select("*, donor:donor_profiles(full_name, display_id)")
+      .order("session_time", { ascending: false });
+
+    if (dbSessions) {
+      setSessionLogs(dbSessions.map(s => ({
+        id: s.id,
+        time: new Date(s.session_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        donorName: s.donor?.full_name || "Anonymous",
+        donorId: s.donor?.display_id || "N/A",
+        volumeMl: Number(s.volume_ml),
+        status: s.status,
+        statusLabel: s.status_label || "Verified"
+      })));
+    }
+  }
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   // Search donor mapping simulation
-  const handleSearchChange = (val: string) => {
+  const handleSearchChange = async (val: string) => {
     setSearchQuery(val);
     const lower = val.toLowerCase();
-    const found = terminalSearchDonors.find(
-      (d) => d.name.toLowerCase().includes(lower)
-    );
-    if (found) {
-      setCurrentDonor(found);
-    } else if (lower) {
+    if (!lower) {
+      setCurrentDonor(defaultDonor);
+      return;
+    }
+
+    try {
+      const { data } = await supabase
+        .from("donor_profiles")
+        .select("full_name, display_id")
+        .ilike("full_name", `%${lower}%`)
+        .limit(1);
+
+      if (data && data.length > 0) {
+        setCurrentDonor({ name: data[0].full_name, id: data[0].display_id });
+      } else {
+        setCurrentDonor({ name: val, id: "TEMP-" + Math.floor(1000 + Math.random() * 9000) });
+      }
+    } catch (err) {
+      console.error(err);
       setCurrentDonor({ name: val, id: "TEMP-" + Math.floor(1000 + Math.random() * 9000) });
-    } else {
-      setCurrentDonor(terminalDefaultDonor);
     }
   };
 
   // Submit new donation entry
-  const handleLogDonation = () => {
+  const handleLogDonation = async () => {
     if (!volume || isNaN(Number(volume))) {
       alert("Please enter a valid donation volume.");
       return;
@@ -60,42 +124,53 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
     
     // Add new log
     const now = new Date();
-    let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
-    const timeStr = `${hours}:${minutes} ${ampm}`;
-
-    const newLog: SessionLog = {
-      id: "LOG-" + (sessionLogs.length + 1).toString().padStart(2, "0"),
-      time: timeStr,
-      donorName: currentDonor.name,
-      donorId: "DON-" + currentDonor.id,
-      volumeMl: volNum,
-      status: "verified",
-      statusLabel: "Verified",
-    };
-
-    setSessionLogs([newLog, ...sessionLogs]);
     
-    // Update active batch (B-202310-04) stats
-    setBatches(batches.map(b => {
-      if (b.id === "B-202310-04") {
-        return {
-          ...b,
-          entries: b.entries + 1,
-          volumeL: Number((b.volumeL + volNum / 1000).toFixed(2)),
-        };
-      }
-      return b;
-    }));
+    let dbDonorId: string | null = null;
+    const { data: dp } = await supabase
+      .from("donor_profiles")
+      .select("id")
+      .eq("display_id", "DON-" + currentDonor.id)
+      .single();
 
-    // Reset fields
+    if (dp) {
+      dbDonorId = dp.id;
+    }
+
+    const newLogId = "LOG-" + (sessionLogs.length + 1).toString().padStart(2, "0");
+    const { error: insErr } = await supabase
+      .from("terminal_sessions")
+      .insert({
+        id: newLogId,
+        donor_id: dbDonorId,
+        volume_ml: volNum,
+        session_time: now.toISOString(),
+        status: "verified",
+        status_label: "Verified"
+      });
+
+    if (insErr) {
+      alert("Error saving log to Supabase: " + insErr.message);
+    }
+
+    // Update active batch stats
+    const openBatch = batches.find(b => b.status === "OPEN");
+    if (openBatch) {
+      await supabase
+        .from("terminal_batches")
+        .update({
+          entries: openBatch.entries + 1,
+          volume_l: Number((openBatch.volumeL + volNum / 1000).toFixed(2))
+        })
+        .eq("id", openBatch.id);
+    }
+
+    // Reset fields & refresh
     setVolume("");
     setTemperature("");
     setExpressionTime("");
     setObservations("");
     alert("Donation entry logged successfully!");
+    loadData();
   };
 
   // Submit walk-in donor registration
@@ -118,17 +193,26 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
   };
 
   // Initiate new batch
-  const handleInitiateBatch = () => {
+  const handleInitiateBatch = async () => {
     const nextNum = batches.length + 1;
     const batchId = `B-202310-${nextNum.toString().padStart(2, "0")}`;
-    const newBatch: Batch = {
-      id: batchId,
-      entries: 0,
-      volumeL: 0,
-      status: "OPEN",
-    };
-    setBatches([newBatch, ...batches]);
+    
+    const { error: batchErr } = await supabase
+      .from("terminal_batches")
+      .insert({
+        id: batchId,
+        entries: 0,
+        volume_l: 0,
+        status: "OPEN"
+      });
+
+    if (batchErr) {
+      alert("Error initiating new batch: " + batchErr.message);
+      return;
+    }
+
     alert(`Initiated new batch: ${batchId}`);
+    loadData();
   };
 
   // Compute total intake volume in liters

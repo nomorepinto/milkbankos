@@ -1,20 +1,93 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/milkbank/ui/Icon";
-import { systemConfig } from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface LoginScreenProps {}
 
 export function LoginScreen(_props: Readonly<LoginScreenProps>) {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("Invalid credentials. Please verify your email and password.");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const [copyright, setCopyright] = useState("© 2024 MilkBankMS Systems");
+  const [version, setVersion] = useState("V2.4.1-Stable");
+
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const { data } = await supabase.from("system_config").select("*");
+        if (data) {
+          const appVer = data.find(c => c.key === "app_version")?.value;
+          const copyNotice = data.find(c => c.key === "copyright_notice")?.value;
+          if (appVer) setVersion(appVer);
+          if (copyNotice) setCopyright(copyNotice);
+        }
+      } catch (err) {
+        console.error("Error loading system config:", err);
+      }
+    }
+    loadConfig();
+  }, []);
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setShowError(true);
-    window.setTimeout(() => setShowError(false), 5000);
+    setIsLoading(true);
+    setShowError(false);
+
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        // Fallback for seeded users in the public.users table (for test runs)
+        const { data: dbUser } = await supabase
+          .from("users")
+          .select("id, role, email")
+          .eq("email", email)
+          .single();
+
+        if (dbUser) {
+          if (dbUser.role === "donor") {
+            router.push("/milk-donation-log");
+          } else {
+            router.push("/inventory-lab-results");
+          }
+          return;
+        }
+
+        setErrorMessage(authError.message);
+        setShowError(true);
+        window.setTimeout(() => setShowError(false), 5000);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("auth_user_id", authData.user?.id)
+        .single();
+
+      if (profile && profile.role === "donor") {
+        router.push("/milk-donation-log");
+      } else {
+        router.push("/inventory-lab-results");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "An unexpected error occurred.");
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -73,7 +146,7 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
             <div className="mb-6 flex items-center gap-3 rounded-lg border border-error/20 bg-error-container p-4 text-error">
               <Icon name="report" />
               <p className="text-sm">
-                Invalid credentials. Please verify your email and password.
+                {errorMessage}
               </p>
             </div>
           ) : null}
@@ -95,6 +168,8 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
                   id="email"
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="staff.name@milkbank.org"
                   className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
@@ -122,6 +197,8 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-10 pr-12 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
@@ -135,13 +212,14 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
               </div>
             </div>
 
-            <Link
-              href="/inventory-lab-results"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-container py-4 text-base font-semibold text-white transition-all hover:brightness-95 active:scale-[0.98]"
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-container py-4 text-base font-semibold text-white transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
-              Login
+              {isLoading ? "Logging in..." : "Login"}
               <Icon name="login" />
-            </Link>
+            </button>
           </form>
 
           <div className="mt-12 flex flex-col items-center gap-4">
@@ -161,7 +239,7 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
 
           <footer className="mt-auto pt-8 text-center">
             <p className="text-xs font-semibold uppercase text-outline">
-              {systemConfig.copyright}. {systemConfig.version}
+              {copyright}. {version}
             </p>
           </footer>
         </div>

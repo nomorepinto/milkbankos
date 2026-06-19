@@ -1,16 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
-import { exportJobs, exportHubStats } from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface DataExportScreenProps {}
 
 export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
   const [format, setFormat] = useState("CSV");
   const [dataset, setDataset] = useState("inventory");
+
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    previewRows: "0 Rows",
+    encryption: "AES-256 Bit",
+  });
+
+  async function loadExportData() {
+    // 1. Fetch export jobs
+    const { data: dbJobs } = await supabase
+      .from("export_jobs")
+      .select("*")
+      .order("requested_at", { ascending: false });
+
+    if (dbJobs) {
+      setJobs(dbJobs.map(j => ({
+        id: j.id,
+        dataset: j.dataset,
+        format: j.format,
+        rows: j.row_count,
+        status: j.status,
+        statusLabel: j.status_label,
+        requestedAt: new Date(j.requested_at).toLocaleDateString()
+      })));
+    }
+
+    // 2. Fetch stats
+    const { data: dbStats } = await supabase
+      .from("view_export_hub_stats")
+      .select("*")
+      .single();
+
+    if (dbStats) {
+      setStats({
+        previewRows: dbStats.preview_rows != null ? `${dbStats.preview_rows} Rows` : "0 Rows",
+        encryption: dbStats.encryption || "AES-256 Bit"
+      });
+    }
+  }
+
+  useEffect(() => {
+    loadExportData();
+  }, []);
+
+  const handleGenerateExport = async () => {
+    const newId = "EXP-" + (jobs.length + 900 + 1);
+    const { error } = await supabase
+      .from("export_jobs")
+      .insert({
+        id: newId,
+        dataset: dataset === "inventory" ? "Inventory & Lab Results" : dataset === "donors" ? "Donor Registry" : "Dispensing Records",
+        format: format,
+        row_count: Math.floor(100 + Math.random() * 900),
+        status: "pending",
+        status_label: "Processing"
+      });
+
+    if (error) {
+      alert("Error generating export: " + error.message);
+      return;
+    }
+
+    alert("Export generation requested successfully!");
+    loadExportData();
+  };
 
   return (
     <AppShell activeSlug="data-export">
@@ -61,7 +126,8 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
               </div>
               <button
                 type="button"
-                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary-container px-5 py-2.5 text-sm font-semibold text-white"
+                onClick={handleGenerateExport}
+                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary-container px-5 py-2.5 text-sm font-semibold text-white cursor-pointer"
               >
                 <Icon name="download" />
                 Generate Export
@@ -74,7 +140,7 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
                 Recent Exports
               </h3>
               <div className="space-y-3">
-                {exportJobs.map((job) => (
+                {jobs.map((job) => (
                   <div
                     key={job.id}
                     className="flex flex-col gap-3 rounded-lg border border-outline-variant/30 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -97,13 +163,13 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
               <p className="text-xs font-semibold uppercase text-on-surface-variant">
                 Preview Rows
               </p>
-              <p className="mt-2 text-3xl font-bold text-on-surface">{exportHubStats.previewRows}</p>
+              <p className="mt-2 text-3xl font-bold text-on-surface">{stats.previewRows}</p>
             </div>
             <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
               <p className="text-xs font-semibold uppercase text-on-surface-variant">
                 Encryption
               </p>
-              <p className="mt-2 text-xl font-semibold">{exportHubStats.encryption}</p>
+              <p className="mt-2 text-xl font-semibold">{stats.encryption}</p>
             </div>
             <div className="rounded-xl border border-primary/30 bg-primary-container/10 p-6">
               <h4 className="font-semibold text-on-surface">Need a Custom Dataset?</h4>

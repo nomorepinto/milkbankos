@@ -1,11 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { APP_NAV_ITEMS, SECONDARY_NAV_ITEMS } from "@/lib/data/navigation";
 import { Icon } from "../ui/Icon";
-import { staffProfile } from "@/lib/data/mockData";
 
 export interface TopNavProps {
   readonly activeSlug?: string;
@@ -14,6 +14,74 @@ export interface TopNavProps {
 export function TopNav({ activeSlug }: TopNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [initials, setInitials] = useState("DR");
+
+  useEffect(() => {
+    async function loadUserProfile() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: staff } = await supabase
+            .from("staff_profiles")
+            .select("avatar_initials")
+            .eq("id", user.id)
+            .single();
+
+          if (staff?.avatar_initials) {
+            setInitials(staff.avatar_initials);
+          } else {
+            const { data: donor } = await supabase
+              .from("donor_profiles")
+              .select("full_name")
+              .eq("id", user.id)
+              .single();
+
+            if (donor?.full_name) {
+              const parts = donor.full_name.trim().split(/\s+/);
+              const init = parts.map((p: string) => p[0]).join("").substring(0, 2).toUpperCase();
+              setInitials(init || "U");
+            } else {
+              // Fallback lookup in users table in case profile tables are not fully seeded
+              const { data: dbUser } = await supabase
+                .from("users")
+                .select("id, role, email")
+                .eq("email", user.email)
+                .single();
+
+              if (dbUser) {
+                if (dbUser.role === "donor") {
+                  const { data: d } = await supabase.from("donor_profiles").select("full_name").eq("id", dbUser.id).single();
+                  if (d?.full_name) {
+                    const parts = d.full_name.trim().split(/\s+/);
+                    const init = parts.map((p: string) => p[0]).join("").substring(0, 2).toUpperCase();
+                    setInitials(init || "U");
+                  }
+                } else {
+                  const { data: s } = await supabase.from("staff_profiles").select("avatar_initials").eq("id", dbUser.id).single();
+                  if (s?.avatar_initials) {
+                    setInitials(s.avatar_initials);
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error loading user initials in TopNav:", err);
+      }
+    }
+    loadUserProfile();
+  }, []);
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Error signing out:", err);
+    }
+    window.location.href = "/login";
+  };
 
   const isActive = (href: string, slug: string) => {
     if (slug === "donor-directory") {
@@ -85,14 +153,14 @@ export function TopNav({ activeSlug }: TopNavProps) {
           <div className="mx-1 hidden h-8 w-px bg-white/20 sm:block" />
           <div className="flex items-center gap-2 md:gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container text-xs font-bold text-white">
-              {staffProfile.avatarInitials}
+              {initials}
             </div>
-            <Link
-              href="/login"
+            <button
+              onClick={handleLogout}
               className="hidden text-sm font-bold text-white hover:opacity-80 sm:inline"
             >
               Logout
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -114,13 +182,12 @@ export function TopNav({ activeSlug }: TopNavProps) {
                 {item.label}
               </Link>
             ))}
-            <Link
-              href="/login"
-              onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-white/75 hover:bg-white/10"
+            <button
+              onClick={handleLogout}
+              className="block w-full text-left rounded-lg px-3 py-2.5 text-sm font-semibold text-white/75 hover:bg-white/10"
             >
               Logout
-            </Link>
+            </button>
           </div>
         </div>
       ) : null}

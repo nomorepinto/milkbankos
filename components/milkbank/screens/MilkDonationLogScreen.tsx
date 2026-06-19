@@ -1,12 +1,83 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatCard } from "@/components/milkbank/ui/StatCard";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
-import { donationLogStats, donationRows } from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface MilkDonationLogScreenProps {}
 
 export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProps>) {
+  const [rows, setRows] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalVolume: "0",
+    donations: "0",
+    impact: "Nurturing 0 Infants",
+  });
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        let donorId = user?.id;
+
+        // Fallback to the first donor profile if no session exists (for unauthenticated viewing)
+        if (!donorId) {
+          const { data: profiles } = await supabase.from("donor_profiles").select("id").limit(1);
+          if (profiles && profiles.length > 0) {
+            donorId = profiles[0].id;
+          }
+        }
+
+        if (donorId) {
+          const { data: donationsData } = await supabase
+            .from("donations")
+            .select("*")
+            .eq("donor_id", donorId)
+            .order("donated_at", { ascending: false });
+
+          if (donationsData && donationsData.length > 0) {
+            const totalVol = donationsData.reduce((sum, d) => sum + Number(d.volume_ml), 0);
+            const countThisQuarter = donationsData.filter(d => {
+              const dDate = new Date(d.donated_at);
+              const threeMonthsAgo = new Date();
+              threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+              return dDate >= threeMonthsAgo;
+            }).length;
+
+            setStats({
+              totalVolume: totalVol.toLocaleString(),
+              donations: countThisQuarter.toString(),
+              impact: `Nurturing ${Math.max(1, Math.round(totalVol / 1500))} Infants`
+            });
+
+            setRows(donationsData.map(d => ({
+              id: d.id,
+              dateTime: new Date(d.donated_at).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              }).replace(',', ' ·'),
+              volumeMl: Number(d.volume_ml),
+              type: d.milk_type,
+              temp: d.temperature_c != null ? `${d.temperature_c}°C` : "N/A",
+              status: d.status,
+              statusLabel: d.status_label
+            })));
+          }
+        }
+      } catch (err) {
+        console.error("Error loading donations:", err);
+      }
+    }
+    loadData();
+  }, []);
+
   return (
     <AppShell activeSlug="milk-donation-log">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
@@ -30,21 +101,21 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
             <StatCard
               label="Total Volume"
-              value={donationLogStats.totalVolume}
+              value={stats.totalVolume}
               subtext="ml lifetime"
               icon="water_drop"
               accent="primary"
             />
             <StatCard
               label="Donations"
-              value={donationLogStats.donations}
+              value={stats.donations}
               subtext="This quarter"
               icon="history"
               accent="secondary"
             />
             <StatCard
               label="Impact"
-              value={donationLogStats.impact}
+              value={stats.impact}
               icon="favorite"
               accent="tertiary"
             />
@@ -68,7 +139,7 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
                   </tr>
                 </thead>
                 <tbody>
-                  {donationRows.map((row, index) => (
+                  {rows.map((row, index) => (
                     <tr
                       key={row.id}
                       className={

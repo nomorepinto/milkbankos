@@ -1,12 +1,39 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
-import { dispensingRecords } from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface BeneficiaryDispensingScreenProps {}
 
 export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensingScreenProps>) {
-  const critical = dispensingRecords.filter((r) => r.priority === "critical");
+  const [records, setRecords] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadDispensing() {
+      const { data } = await supabase
+        .from("dispensing_records")
+        .select("*, beneficiary:beneficiaries(infant_name)");
+
+      if (data) {
+        setRecords(data.map(r => ({
+          id: r.id,
+          beneficiary: r.beneficiary?.infant_name || "Unknown",
+          ward: r.ward,
+          volumeMl: Number(r.volume_ml),
+          date: r.dispensed_date,
+          priority: r.priority,
+          status: r.status,
+          statusLabel: r.status_label
+         })));
+      }
+    }
+    loadDispensing();
+  }, []);
+
+  const critical = records.filter((r) => r.priority === "critical");
 
   return (
     <AppShell activeSlug="beneficiary-dispensing">
@@ -65,7 +92,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                   </tr>
                 </thead>
                 <tbody>
-                  {dispensingRecords.map((record, i) => (
+                  {records.map((record, i) => (
                     <tr
                       key={record.id}
                       className={i % 2 === 0 ? "" : "bg-surface-container-low/50"}

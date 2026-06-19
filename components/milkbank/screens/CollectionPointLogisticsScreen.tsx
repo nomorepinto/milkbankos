@@ -1,17 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { LogisticsSubNav } from "@/components/milkbank/layout/LogisticsSubNav";
 import { Icon } from "@/components/milkbank/ui/Icon";
+import { supabase } from "@/lib/supabaseClient";
+
+export interface MapPoint {
+  id: string;
+  name: string;
+  type: "hospital" | "shipping";
+  status: "active" | "busy" | "idle";
+  capacity?: string;
+  departure?: string;
+  expiry?: string;
+  top: string;
+  left: string;
+}
+
+const POINT_POSITIONS: Record<string, { top: string; left: string }> = {
+  "FC-01": { top: "35%", left: "42%" },
+  "FC-02": { top: "48%", left: "25%" },
+  "MH-01": { top: "55%", left: "58%" },
+  "MH-02": { top: "65%", left: "70%" },
+};
 
 export interface CollectionPointLogisticsScreenProps {}
-
-import {
-  logisticsPoints,
-  logisticsStats,
-  type LogisticsPoint as MapPoint,
-} from "@/lib/data/mockData";
 
 export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointLogisticsScreenProps>) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +34,56 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
   const [activePointId, setActivePointId] = useState<string | null>(null);
   const [hoveredPointId, setHoveredPointId] = useState<string | null>(null);
 
-  const filteredPoints = logisticsPoints.filter((point) => {
+  const [points, setPoints] = useState<MapPoint[]>([]);
+  const [stats, setStats] = useState({
+    activeHubs: "00",
+    todayIntake: "0.0 L",
+    liveDonors: "0",
+  });
+
+  useEffect(() => {
+    async function loadLogisticsData() {
+      // 1. Fetch points
+      const { data: dbPoints } = await supabase
+        .from("logistics_points")
+        .select("*");
+
+      if (dbPoints) {
+        setPoints(dbPoints.map(p => {
+          const pos = POINT_POSITIONS[p.id] || { top: "50%", left: "50%" };
+          return {
+            id: p.id,
+            name: p.name,
+            type: p.type,
+            status: p.status,
+            capacity: p.capacity_percentage ? `${p.capacity_percentage}% filled` : undefined,
+            departure: p.departure_time ? p.departure_time.substring(0, 5) : undefined,
+            expiry: p.expiry_interval ? p.expiry_interval : undefined,
+            top: pos.top,
+            left: pos.left
+          };
+        }));
+      }
+
+      // 2. Fetch stats
+      const { data: dbStats } = await supabase
+        .from("view_logistics_stats")
+        .select("*")
+        .single();
+
+      if (dbStats) {
+        setStats({
+          activeHubs: String(dbStats.active_hubs).padStart(2, '0'),
+          todayIntake: `${(dbStats.today_intake_ml / 1000).toFixed(1)} L`,
+          liveDonors: String(dbStats.live_donors)
+        });
+      }
+    }
+
+    loadLogisticsData();
+  }, []);
+
+  const filteredPoints = points.filter((point) => {
     // Search filter
     const matchesSearch =
       point.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -208,15 +271,15 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
               <div className="bg-white/80 border border-slate-500/10 rounded-xl p-4 flex gap-8 shadow-md backdrop-blur-md font-bold">
                 <div className="border-r border-outline-variant/35 pr-8">
                   <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Active Hubs</p>
-                  <p className="text-2xl text-primary font-bold">{logisticsStats.activeHubs}</p>
+                  <p className="text-2xl text-primary font-bold">{stats.activeHubs}</p>
                 </div>
                 <div className="border-r border-outline-variant/35 pr-8">
                   <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Today&apos;s Intake</p>
-                  <p className="text-2xl text-secondary font-bold">{logisticsStats.todayIntake}</p>
+                  <p className="text-2xl text-secondary font-bold">{stats.todayIntake}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Live Donors</p>
-                  <p className="text-2xl text-tertiary font-bold">{logisticsStats.liveDonors}</p>
+                  <p className="text-2xl text-tertiary font-bold">{stats.liveDonors}</p>
                 </div>
               </div>
 

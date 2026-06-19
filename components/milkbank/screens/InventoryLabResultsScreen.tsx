@@ -1,12 +1,71 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatCard } from "@/components/milkbank/ui/StatCard";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
-import { inventoryBatches, inventoryStats } from "@/lib/data/mockData";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface InventoryLabResultsScreenProps {}
 
 export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsScreenProps>) {
+  const [batches, setBatches] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalVolume: "0 ml",
+    batchesToday: "0 Today",
+    passRate: "0%",
+    freezerTemp: "-21.4 °C",
+  });
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
+        if (statsData) {
+          setStats({
+            totalVolume: `${Number(statsData.total_volume_ml).toLocaleString()} ml`,
+            batchesToday: `${statsData.batches_today} Today`,
+            passRate: statsData.pass_rate_pct != null ? `${statsData.pass_rate_pct}%` : "0%",
+            freezerTemp: "-21.4 °C", // static fallback temp
+          });
+        }
+
+        const { data: batchesData } = await supabase
+          .from("inventory_batches")
+          .select("*, donor:donor_profiles(full_name)")
+          .order("collected_at", { ascending: false });
+
+        if (batchesData && batchesData.length > 0) {
+          setBatches(batchesData.map(b => ({
+            batchId: b.batch_id,
+            donor: b.donor?.full_name || "Unknown Donor",
+            volumeMl: Number(b.volume_ml),
+            collected: new Date(b.collected_at).toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }).replace(',', ''),
+            expiry: new Date(b.expiry_date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            }),
+            labStatus: b.lab_status,
+            labLabel: b.lab_label,
+            storage: b.storage_location || "N/A"
+          })));
+        }
+      } catch (err) {
+        console.error("Error loading inventory batches:", err);
+      }
+    }
+    loadData();
+  }, []);
+
   return (
     <AppShell activeSlug="inventory-lab-results">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
@@ -21,25 +80,25 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
           <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
               label="Total Stored Volume"
-              value={inventoryStats.totalVolume}
+              value={stats.totalVolume}
               icon="inventory_2"
               accent="primary"
             />
             <StatCard
               label="Batches Processed"
-              value={inventoryStats.batchesToday}
+              value={stats.batchesToday}
               icon="science"
               accent="secondary"
             />
             <StatCard
               label="Lab Pass Rate"
-              value={inventoryStats.passRate}
+              value={stats.passRate}
               icon="verified"
               accent="primary"
             />
             <StatCard
               label="Freezer Temp"
-              value={inventoryStats.freezerTemp}
+              value={stats.freezerTemp}
               icon="ac_unit"
               accent="neutral"
             />
@@ -89,7 +148,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                   </tr>
                 </thead>
                 <tbody>
-                  {inventoryBatches.map((batch, index) => (
+                  {batches.map((batch, index) => (
                     <tr
                       key={batch.batchId}
                       className={
