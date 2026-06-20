@@ -1,0 +1,9 @@
+For donor information tab, longhitude and latitude is saved as coordinates, am planning to use google maps api to show the donor location on a map
+
+need to utilize the following features of the google maps api
+
+entering an address and getting longhitude and lattitude measurements
+
+displaying longhitude and latitude over a map 
+
+Collection logistics nees to have the 
