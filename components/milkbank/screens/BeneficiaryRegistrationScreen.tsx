@@ -120,6 +120,10 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
     }
   };
 
+  const isBeneficiaryFormComplete = Object.entries(formData).every(
+    ([key, value]) => key === "Special Instructions" || value.trim() !== ""
+  );
+
   return (
     <AppShell activeSlug="beneficiary-registration">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto p-4 md:p-8 bg-background">
@@ -192,9 +196,9 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
             </button>
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isBeneficiaryFormComplete}
               onClick={handleSubmit}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-5 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-5 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <Icon name={isSubmitting ? "hourglass_empty" : "check"} />
               {isSubmitting ? "Submitting..." : "Submit Registration"}

@@ -382,7 +382,8 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                     <button
                       onClick={handleLogDonation}
                       type="button"
-                      className="flex-1 py-4 bg-primary text-white font-bold rounded-xl shadow-md hover:bg-primary/95 transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={!volume || !temperature || !expressionTime}
+                      className="flex-1 py-4 bg-primary text-white font-bold rounded-xl shadow-md hover:bg-primary/95 transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Icon name="save" />
                       <span>Log Donation Entry</span>
@@ -679,7 +680,8 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] cursor-pointer"
+                    disabled={!walkInName.trim() || !walkInPhone.trim() || !walkInDob || !walkInInfantAge}
+                    className="flex-1 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Submit Registration
                   </button>

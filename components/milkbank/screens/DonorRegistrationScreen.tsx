@@ -25,6 +25,16 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("donorpassword123");
   const [isLoading, setIsLoading] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [healthChecks, setHealthChecks] = useState([false, false, false]);
+
+  const isStep1Complete =
+    fullName.trim() !== "" &&
+    dob !== "" &&
+    phone.trim() !== "" &&
+    email.trim() !== "";
+
+  const isStep2Complete = healthChecks.every((val) => val === true);
 
   const handleSubmitRegistration = async () => {
     setIsLoading(true);
@@ -99,20 +109,26 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
           </div>
 
           <div className="flex border-b border-outline-variant/30">
-            {donorRegistrationSteps.map((label, index) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => setStep(index)}
-                className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-wide transition-colors ${
-                  step === index
-                    ? "border-b-2 border-primary-container bg-primary-container/5 text-primary"
-                    : "text-on-surface-variant hover:bg-surface-container-low"
-                }`}
-              >
-                {index + 1}. {label}
-              </button>
-            ))}
+            {donorRegistrationSteps.map((label, index) => {
+              const isDisabled =
+                (index === 1 && !isStep1Complete) ||
+                (index === 2 && (!isStep1Complete || !isStep2Complete));
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => setStep(index)}
+                  className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-wide transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                    step === index
+                      ? "border-b-2 border-primary-container bg-primary-container/5 text-primary"
+                      : "text-on-surface-variant hover:bg-surface-container-low"
+                  }`}
+                >
+                  {index + 1}. {label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="space-y-6 p-8">
@@ -172,12 +188,21 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
                     "No active infections in the last 12 months",
                     "Not taking prohibited medications",
                     "No alcohol or tobacco use within 24h of donation",
-                  ].map((item) => (
+                  ].map((item, idx) => (
                     <label
                       key={item}
-                      className="flex items-start gap-3 rounded-lg border border-outline-variant/40 p-4"
+                      className="flex items-start gap-3 rounded-lg border border-outline-variant/40 p-4 cursor-pointer hover:bg-surface-container-low transition-colors"
                     >
-                      <input type="checkbox" className="mt-1 rounded border-outline-variant" />
+                      <input
+                        type="checkbox"
+                        className="mt-1 rounded border-outline-variant text-primary focus:ring-primary"
+                        checked={healthChecks[idx]}
+                        onChange={(e) => {
+                          const updated = [...healthChecks];
+                          updated[idx] = e.target.checked;
+                          setHealthChecks(updated);
+                        }}
+                      />
                       <span className="text-sm text-on-surface">{item}</span>
                     </label>
                   ))}
@@ -186,7 +211,7 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
             ) : null}
 
             {step === 2 ? (
-              <>
+              <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-on-surface">
                   Consent & Verification
                 </h2>
@@ -194,23 +219,45 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
                   I consent to donor screening, milk testing, and secure storage per
                   MilkBankMS clinical protocols.
                 </div>
-              </>
+                <label className="flex items-start gap-3 rounded-lg border border-outline-variant/40 p-4 cursor-pointer hover:bg-surface-container-low transition-colors">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary"
+                    checked={consentChecked}
+                    onChange={(e) => setConsentChecked(e.target.checked)}
+                  />
+                  <span className="text-sm text-on-surface">
+                    I agree to the terms and consent to proceed.
+                  </span>
+                </label>
+              </div>
             ) : null}
 
             <div className="flex justify-between pt-4">
               <button
                 type="button"
-                disabled={step === 0 || isLoading}
-                onClick={() => setStep((s) => Math.max(0, s - 1))}
+                disabled={isLoading}
+                onClick={() => {
+                  if (step === 0) {
+                    router.push("/login");
+                  } else {
+                    setStep((s) => s - 1);
+                  }
+                }}
                 className="rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary disabled:opacity-40"
               >
                 Back
               </button>
               <button
                 type="button"
-                disabled={isLoading}
+                disabled={
+                  isLoading ||
+                  (step === 0 && !isStep1Complete) ||
+                  (step === 1 && !isStep2Complete) ||
+                  (step === 2 && (!isStep1Complete || !isStep2Complete || !consentChecked))
+                }
                 onClick={handleNext}
-                className="rounded-lg bg-primary-container px-6 py-2 text-sm font-semibold text-white cursor-pointer"
+                className="rounded-lg bg-primary-container px-6 py-2 text-sm font-semibold text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Submitting..." : step === donorRegistrationSteps.length - 1 ? "Submit Registration" : "Continue"}
               </button>
