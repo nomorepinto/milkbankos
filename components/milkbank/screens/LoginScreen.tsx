@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { supabase } from "@/lib/supabaseClient";
 
-export interface LoginScreenProps {}
+export interface LoginScreenProps { }
 
 export function LoginScreen(_props: Readonly<LoginScreenProps>) {
   const router = useRouter();
@@ -104,24 +104,6 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
               </div>
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold text-white">MilkBankMS</h1>
-                <p className="mx-auto max-w-xs text-sm text-white/70">
-                  The MilkBankMS precision standard for donor management and human
-                  milk pasteurization tracking.
-                </p>
-              </div>
-            </div>
-            <div className="mt-12 grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-white/20 bg-white/10 p-4">
-                <Icon name="verified_user" className="mb-2 text-primary-container" />
-                <p className="text-xs font-semibold uppercase text-white">
-                  Clinical Compliance
-                </p>
-              </div>
-              <div className="rounded-lg border border-white/20 bg-white/10 p-4">
-                <Icon name="biotech" className="mb-2 text-primary-container" />
-                <p className="text-xs font-semibold uppercase text-white">
-                  Batch Precision
-                </p>
               </div>
             </div>
           </div>

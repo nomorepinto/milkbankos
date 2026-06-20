@@ -7,7 +7,7 @@ import { StatCard } from "@/components/milkbank/ui/StatCard";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
 import { supabase } from "@/lib/supabaseClient";
 
-export interface InventoryLabResultsScreenProps {}
+export interface InventoryLabResultsScreenProps { }
 
 export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsScreenProps>) {
   const [batches, setBatches] = useState<any[]>([]);
@@ -100,9 +100,6 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
         <div className="mx-auto max-w-[1440px]">
           <div className="mb-6">
             <h2 className="text-3xl font-bold text-on-surface">Inventory Management</h2>
-            <p className="text-sm text-on-surface-variant">
-              Real-time batch tracking, laboratory results, and cold-chain monitoring.
-            </p>
           </div>
 
           <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -138,11 +135,10 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors cursor-pointer ${
-                  isFilterOpen || selectedStatuses.length > 0 || selectedStorages.length > 0 || minVolume || maxVolume
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors cursor-pointer ${isFilterOpen || selectedStatuses.length > 0 || selectedStorages.length > 0 || minVolume || maxVolume
                     ? "bg-primary-container/10 border-primary text-primary"
                     : "border-outline-variant hover:bg-surface-container-low text-on-surface"
-                }`}
+                  }`}
               >
                 <Icon name="filter_list" />
                 Filter
@@ -187,11 +183,10 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                                   setSelectedStatuses([...selectedStatuses, status.key]);
                                 }
                               }}
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
-                                isSelected
+                              className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${isSelected
                                   ? "bg-primary-container text-white border-primary-container"
                                   : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
-                              }`}
+                                }`}
                             >
                               {status.label}
                             </button>
@@ -221,11 +216,10 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                                   setSelectedStorages([...selectedStorages, storage.key]);
                                 }
                               }}
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
-                                isSelected
+                              className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${isSelected
                                   ? "bg-secondary text-white border-secondary"
                                   : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
-                              }`}
+                                }`}
                             >
                               {storage.label}
                             </button>

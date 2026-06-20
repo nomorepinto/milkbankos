@@ -26,7 +26,7 @@ export interface Batch {
 
 const defaultDonor = { name: "Sarah J. Miller", id: "9928" };
 
-export interface OnsiteCollectionTerminalScreenProps {}
+export interface OnsiteCollectionTerminalScreenProps { }
 
 export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollectionTerminalScreenProps>) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,12 +119,12 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
       alert("Please enter a valid donation volume.");
       return;
     }
-    
+
     const volNum = Number(volume);
-    
+
     // Add new log
     const now = new Date();
-    
+
     let dbDonorId: string | null = null;
     const { data: dp } = await supabase
       .from("donor_profiles")
@@ -183,7 +183,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
     const generatedId = Math.floor(1000 + Math.random() * 9000).toString();
     setCurrentDonor({ name: walkInName, id: generatedId });
     setIsModalOpen(false);
-    
+
     // Reset modal fields
     setWalkInName("");
     setWalkInPhone("");
@@ -196,7 +196,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
   const handleInitiateBatch = async () => {
     const nextNum = batches.length + 1;
     const batchId = `B-202310-${nextNum.toString().padStart(2, "0")}`;
-    
+
     const { error: batchErr } = await supabase
       .from("terminal_batches")
       .insert({
@@ -224,24 +224,18 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
         <LogisticsSubNav activeTab="terminal" />
 
         <main className="mx-auto max-w-[1600px] px-4 py-8 md:px-8 space-y-8">
-          
+
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-                <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
-                  Active Collection Site
-                </span>
-              </div>
-              <h2 className="text-3xl font-bold text-on-background flex items-center gap-3">
+              <h2 className="text-3xl font-bold text-on-surface flex items-center gap-3">
                 St. Jude Medical Plaza
                 <span className="bg-surface-container-high px-3 py-1 rounded-full text-xs font-bold text-on-surface">
                   ROOM 402
                 </span>
               </h2>
             </div>
-            
+
             <div className="flex flex-col items-end">
               <span className="text-xs font-semibold text-on-surface-variant mb-1">Sync Status</span>
               <div className="flex items-center gap-2 bg-secondary/10 text-secondary px-3 py-1 rounded-lg border border-secondary/20">
@@ -253,10 +247,10 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
 
           {/* Bento Grid Content */}
           <div className="grid grid-cols-12 gap-6 items-start">
-            
+
             {/* Left Column: Donor & Intake */}
             <div className="col-span-12 lg:col-span-9 space-y-6">
-              
+
               {/* Search & Quick Action */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative group">
@@ -269,7 +263,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                     onChange={(e) => handleSearchChange(e.target.value)}
                   />
                 </div>
-                
+
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
@@ -294,7 +288,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     <span className="text-xs font-semibold text-on-surface-variant block">Batch Assignment</span>
                     <span className="text-xs font-bold bg-primary/15 px-2 py-1 rounded text-primary uppercase">
@@ -319,7 +313,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-outline text-xs font-bold">ML</span>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Storage Temperature (°C)
@@ -336,7 +330,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-outline text-xs font-bold">°C</span>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Date &amp; Time of Expressing
@@ -348,7 +342,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       onChange={(e) => setExpressionTime(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Milk Type / Status
@@ -364,7 +358,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       <option>Preterm Donor Milk</option>
                     </select>
                   </div>
-                  
+
                   <div className="col-span-full space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Clinical Observations &amp; Notes
@@ -377,7 +371,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       onChange={(e) => setObservations(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="col-span-full pt-4 flex gap-4">
                     <button
                       onClick={handleLogDonation}
@@ -412,7 +406,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                     Total: {totalVolumeL} Liters
                   </span>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-surface-container-low">
@@ -428,9 +422,8 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       {sessionLogs.map((log, index) => (
                         <tr
                           key={log.id}
-                          className={`hover:bg-primary/5 transition-colors ${
-                            index % 2 === 1 ? "bg-surface-container-low/20" : ""
-                          }`}
+                          className={`hover:bg-primary/5 transition-colors ${index % 2 === 1 ? "bg-surface-container-low/20" : ""
+                            }`}
                         >
                           <td className="px-6 py-4 font-semibold text-on-surface-variant">{log.time}</td>
                           <td className="px-6 py-4 font-bold text-on-surface">
@@ -441,11 +434,10 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                           </td>
                           <td className="px-6 py-4 font-bold text-on-surface">{log.volumeMl} mL</td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                              log.status === "verified"
-                                ? "bg-secondary-container/20 text-secondary"
-                                : "bg-tertiary-container/20 text-tertiary"
-                            }`}>
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${log.status === "verified"
+                              ? "bg-secondary-container/20 text-secondary"
+                              : "bg-tertiary-container/20 text-tertiary"
+                              }`}>
                               {log.statusLabel}
                             </span>
                           </td>
@@ -469,7 +461,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
 
             {/* Right Column: Batch & Tracking */}
             <div className="col-span-12 lg:col-span-3 space-y-6">
-              
+
               {/* Real-time Metrics Card */}
               <div className="bg-primary-dark rounded-xl p-6 text-white shadow-xl relative overflow-hidden">
                 <div className="relative z-10">
@@ -486,7 +478,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                         <div className="bg-primary-container h-full w-[60%] rounded-full shadow-[0_0_10px_rgba(171,138,255,0.5)]"></div>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 gap-4 font-bold">
                       <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                         <span className="text-[10px] text-primary-fixed/60 block uppercase">Avg. Temp</span>
@@ -499,7 +491,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
                   <Icon name="analytics" className="text-[160px]" />
                 </div>
@@ -511,34 +503,32 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                   <h3 className="text-base font-bold text-on-surface">Batch Tracking</h3>
                   <Icon name="history" className="text-outline" />
                 </div>
-                
+
                 <div className="space-y-4">
                   {batches.map((batch) => {
                     const isOpen = batch.status === "OPEN";
                     return (
                       <div
                         key={batch.id}
-                        className={`p-4 rounded-lg border flex items-start gap-4 ${
-                          isOpen
-                            ? "bg-surface-container-low border-outline-variant/40"
-                            : "border-outline-variant/20 opacity-70"
-                        }`}
+                        className={`p-4 rounded-lg border flex items-start gap-4 ${isOpen
+                          ? "bg-surface-container-low border-outline-variant/40"
+                          : "border-outline-variant/20 opacity-70"
+                          }`}
                       >
                         <div className={`w-1.5 h-12 rounded-full ${isOpen ? "bg-secondary" : "bg-outline"}`} />
                         <div className="flex-1">
                           <div className="flex justify-between items-center">
                             <span className="text-xs font-bold text-on-surface">{batch.id}</span>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                              isOpen ? "bg-secondary-container/20 text-secondary" : "bg-surface-container text-on-surface-variant"
-                            }`}>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isOpen ? "bg-secondary-container/20 text-secondary" : "bg-surface-container text-on-surface-variant"
+                              }`}>
                               {batch.status}
                             </span>
                           </div>
-                          
+
                           <p className="text-xs text-on-surface-variant mt-1 font-semibold">
                             {batch.entries} Entries • {batch.volumeL}L Total
                           </p>
-                          
+
                           {isOpen ? (
                             <div className="mt-3 flex flex-wrap gap-2">
                               <button
@@ -572,27 +562,11 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                   <span>Initiate New Batch</span>
                 </button>
               </div>
-
-              {/* Ambient Background Compliance Card */}
-              <div className="relative h-48 rounded-xl overflow-hidden group shadow-sm border border-outline-variant/35">
-                <img
-                  alt="Clinical Lab Environment"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none pointer-events-none"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5aAzgFcX4WfA4TT2wE5S3cAdwkNscc5-fOVPuF734v7BdMMwbNrQdWf_y_b21hNM9aDZpuy_uXZgaRpbZWY4ObR1n8BQXYImU-tmI0mQ7bxTV2AmGfRro3K6xZVVeAsd2i_KpFvwtiPZYHmXBY2LQ4Kh_W89tWEY3DkHTT80VymTITZIypIM-hyY3-n8jqjivYROtL96bSGLZTSb6OyWdzU3IlSTE_YIBNFQTSx6o30I193EbN8P41xUTdZ_IxPw7kuOE_zcLRVU"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/90 to-transparent flex flex-col justify-end p-4">
-                  <h4 className="text-white font-bold text-sm">Site Compliance Check</h4>
-                  <p className="text-primary-fixed/80 text-[10px] font-semibold">
-                    Last inspection: Today, 07:15 AM by supervisor
-                  </p>
-                </div>
-              </div>
-
             </div>
 
           </div>
         </main>
-        
+
         {/* Walk-In Donor Registration Modal Dialog */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
@@ -600,7 +574,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
               className="absolute inset-0 bg-on-background/45 backdrop-blur-sm"
               onClick={() => setIsModalOpen(false)}
             />
-            
+
             <div className="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
               <div className="bg-primary px-8 py-6 text-white flex justify-between items-center">
                 <div>
@@ -632,7 +606,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       onChange={(e) => setWalkInName(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Primary Phone
@@ -644,7 +618,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       onChange={(e) => setWalkInPhone(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Date of Birth
@@ -656,7 +630,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       onChange={(e) => setWalkInDob(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Infant Age (Months)
@@ -697,7 +671,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
             </div>
           </div>
         )}
-        
+
       </div>
     </AppShell>
   );

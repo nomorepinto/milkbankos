@@ -80,14 +80,12 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
   return (
     <AppShell activeSlug="data-export">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
-        <div className="mx-auto grid max-w-[1440px] gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-on-surface">Data Export Hub</h2>
-              <p className="text-sm text-on-surface-variant">
-                Generate compliant clinical datasets for reporting and audit.
-              </p>
-            </div>
+        <div className="mx-auto max-w-[1440px]">
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold text-on-surface">Data Export Hub</h2>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
 
             <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
               <h3 className="mb-6 flex items-center gap-2 text-lg font-semibold">
@@ -179,7 +177,8 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
             </div>
           </aside>
         </div>
-      </main>
+      </div>
+    </main>
     </AppShell>
   );
 }

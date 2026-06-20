@@ -128,11 +128,8 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
     <AppShell activeSlug="beneficiary-registration">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto p-4 md:p-8 bg-background">
         <div className="mx-auto max-w-4xl space-y-8">
-          <div>
+          <div className="mb-6">
             <h2 className="text-3xl font-bold text-on-surface">Beneficiary Registration</h2>
-            <p className="text-sm text-on-surface-variant">
-              Register infants and guardians for milk bank dispensing programs.
-            </p>
           </div>
 
           {successMessage && (

@@ -82,11 +82,8 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
     <AppShell activeSlug="milk-donation-log">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
         <div className="mx-auto max-w-[1440px]">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
-                Donor Portal
-              </p>
               <h2 className="text-3xl font-bold text-on-surface">Donation History</h2>
             </div>
             <button

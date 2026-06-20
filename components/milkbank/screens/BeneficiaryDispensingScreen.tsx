@@ -8,7 +8,7 @@ import { StatusChip } from "@/components/milkbank/ui/StatusChip";
 import { supabase } from "@/lib/supabaseClient";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface BeneficiaryDispensingScreenProps {}
+export interface BeneficiaryDispensingScreenProps { }
 
 interface DispensingRecord {
   id: string;
@@ -17,7 +17,7 @@ interface DispensingRecord {
   volumeMl: number;
   date: string;
   priority: string;
-  status: string;
+  status: any;
   statusLabel: string;
 }
 
@@ -74,6 +74,30 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
       }
     } catch (err) {
       console.error("Error loading beneficiaries:", err);
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    let statusLabel = "Scheduled";
+    if (newStatus === "verified") statusLabel = "Dispensed";
+    else if (newStatus === "fail") statusLabel = "Failed";
+    else if (newStatus === "neutral") statusLabel = "Neutral";
+
+    try {
+      const { error } = await supabase
+        .from("dispensing_records")
+        .update({ status: newStatus, status_label: statusLabel })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, status: newStatus, statusLabel: statusLabel } : r
+        )
+      );
+    } catch (err: any) {
+      alert("Error updating status: " + err.message);
     }
   };
 
@@ -147,11 +171,8 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
     <AppShell activeSlug="beneficiary-dispensing">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
         <div className="mx-auto max-w-[1440px] space-y-8">
-          <div>
-            <p className="text-xs font-semibold uppercase text-on-surface-variant">
-              Beneficiary Data
-            </p>
-            <h3 className="text-3xl font-bold text-on-surface">Dispensing Records</h3>
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold text-on-surface">Dispensing Records</h2>
           </div>
 
           <div className="rounded-xl border border-tertiary/30 bg-tertiary/5 p-6">
@@ -175,11 +196,8 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
             </div>
           </div>
 
-          <div className="rounded-xl bg-primary-dark p-6 text-white">
-            <h5 className="text-lg font-semibold">NICU Monitoring Flow</h5>
-            <p className="mt-2 text-sm text-white/70">
-              Track real-time dispensing against physician orders and inventory allocation.
-            </p>
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold text-on-surface">NICU Monitoring Flow</h2>
           </div>
 
           <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest">
@@ -187,7 +205,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="bg-surface-container-low">
                   <tr>
-                    {["Record ID", "Beneficiary", "Ward", "Volume", "Date", "Status"].map(
+                    {["Record ID", "Beneficiary", "Ward", "Volume", "Date", "Status", "Change Status"].map(
                       (h) => (
                         <th
                           key={h}
@@ -212,6 +230,18 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                       <td className="px-4 py-3">{record.date}</td>
                       <td className="px-4 py-3">
                         <StatusChip label={record.statusLabel} variant={record.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <select
+                          value={record.status}
+                          onChange={(e) => handleStatusChange(record.id, e.target.value)}
+                          className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
+                        >
+                          <option value="pending">Scheduled</option>
+                          <option value="verified">Dispensed</option>
+                          <option value="fail">Failed</option>
+                          <option value="neutral">Neutral</option>
+                        </select>
                       </td>
                     </tr>
                   ))}
@@ -247,7 +277,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
             className="absolute inset-0 bg-on-background/45 backdrop-blur-sm"
             onClick={() => setIsAddModalOpen(false)}
           />
-          
+
           <div className="relative bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
             <div className="bg-primary px-8 py-6 text-white flex justify-between items-center">
               <div>
@@ -314,7 +344,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                       onChange={(e) => setVolumeMl(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Date *
