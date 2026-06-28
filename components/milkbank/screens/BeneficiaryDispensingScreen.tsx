@@ -101,6 +101,25 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
     }
   };
 
+  const handlePriorityChange = async (id: string, newPriority: string) => {
+    try {
+      const { error } = await supabase
+        .from("dispensing_records")
+        .update({ priority: newPriority })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, priority: newPriority } : r
+        )
+      );
+    } catch (err: any) {
+      alert("Error updating priority: " + err.message);
+    }
+  };
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadDispensing();
@@ -183,7 +202,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
               {critical.map((record) => (
                 <div
                   key={record.id}
-                  className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-4"
+                  className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-4 relative group"
                 >
                   <h5 className="font-semibold text-on-surface">{record.beneficiary}</h5>
                   <p className="text-sm text-on-surface-variant">{record.ward}</p>
@@ -191,6 +210,13 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                     <span className="text-sm tabular-nums">{record.volumeMl} ml</span>
                     <StatusChip label={record.statusLabel} variant={record.status} />
                   </div>
+                  <button
+                    onClick={() => handlePriorityChange(record.id, "standard")}
+                    title="Remove from Critical"
+                    className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-error-container hover:text-error text-on-surface-variant transition-colors cursor-pointer"
+                  >
+                    <Icon name="close" className="text-sm" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -205,7 +231,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="bg-surface-container-low">
                   <tr>
-                    {["Record ID", "Beneficiary", "Ward", "Volume", "Date", "Status", "Change Status"].map(
+                    {["Record ID", "Beneficiary", "Ward", "Volume", "Date", "Priority", "Status", "Change Status"].map(
                       (h) => (
                         <th
                           key={h}
@@ -228,6 +254,16 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                       <td className="px-4 py-3">{record.ward}</td>
                       <td className="px-4 py-3 tabular-nums">{record.volumeMl} ml</td>
                       <td className="px-4 py-3">{record.date}</td>
+                      <td className="px-4 py-3">
+                        <select
+                          value={record.priority}
+                          onChange={(e) => handlePriorityChange(record.id, e.target.value)}
+                          className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
+                        >
+                          <option value="standard">Standard</option>
+                          <option value="critical">Critical</option>
+                        </select>
+                      </td>
                       <td className="px-4 py-3">
                         <StatusChip label={record.statusLabel} variant={record.status} />
                       </td>

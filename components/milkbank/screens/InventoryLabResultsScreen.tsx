@@ -24,53 +24,215 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   const [minVolume, setMinVolume] = useState<string>("");
   const [maxVolume, setMaxVolume] = useState<string>("");
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
-        if (statsData) {
-          setStats({
-            totalVolume: `${Number(statsData.total_volume_ml).toLocaleString()} ml`,
-            batchesToday: `${statsData.batches_today} Today`,
-            passRate: statsData.pass_rate_pct != null ? `${statsData.pass_rate_pct}%` : "0%",
-            freezerTemp: "-21.4 °C", // static fallback temp
-          });
-        }
-
-        const { data: batchesData } = await supabase
-          .from("inventory_batches")
-          .select("*, donor:donor_profiles(full_name)")
-          .order("collected_at", { ascending: false });
-
-        if (batchesData && batchesData.length > 0) {
-          setBatches(batchesData.map(b => ({
-            batchId: b.batch_id,
-            donor: b.donor?.full_name || "Unknown Donor",
-            volumeMl: Number(b.volume_ml),
-            collected: new Date(b.collected_at).toLocaleString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            }).replace(',', ''),
-            expiry: new Date(b.expiry_date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            }),
-            labStatus: b.lab_status,
-            labLabel: b.lab_label,
-            storage: b.storage_location || "N/A"
-          })));
-        }
-      } catch (err) {
-        console.error("Error loading inventory batches:", err);
+  const loadData = async () => {
+    try {
+      const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
+      if (statsData) {
+        setStats({
+          totalVolume: `${Number(statsData.total_volume_ml).toLocaleString()} ml`,
+          batchesToday: `${statsData.batches_today} Today`,
+          passRate: statsData.pass_rate_pct != null ? `${statsData.pass_rate_pct}%` : "0%",
+          freezerTemp: "-21.4 °C", // static fallback temp
+        });
       }
+
+      const { data: batchesData } = await supabase
+        .from("inventory_batches")
+        .select("*, donor:donor_profiles(full_name)")
+        .order("collected_at", { ascending: false });
+
+      if (batchesData) {
+        setBatches(batchesData.map(b => ({
+          batchId: b.batch_id,
+          donor: b.donor?.full_name || "Unknown Donor",
+          volumeMl: Number(b.volume_ml),
+          collected: new Date(b.collected_at).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }).replace(',', ''),
+          expiry: new Date(b.expiry_date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }),
+          rawExpiry: b.expiry_date,
+          labStatus: b.lab_status,
+          labLabel: b.lab_label,
+          storage: b.storage_location || "N/A"
+        })));
+      }
+    } catch (err) {
+      console.error("Error loading inventory batches:", err);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  const handleStatusChange = async (batchId: string, newStatus: string) => {
+    let labLabel = "Pending QC";
+    if (newStatus === "verified") labLabel = "Verified";
+    else if (newStatus === "fail") labLabel = "Failed";
+    else if (newStatus === "neutral") labLabel = "Neutral";
+
+    try {
+      const { error } = await supabase
+        .from("inventory_batches")
+        .update({ lab_status: newStatus, lab_label: labLabel })
+        .eq("batch_id", batchId);
+
+      if (error) throw error;
+
+      setBatches((prev) =>
+        prev.map((b) =>
+          b.batchId === batchId ? { ...b, labStatus: newStatus, labLabel: labLabel } : b
+        )
+      );
+
+      // Reload stats
+      const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
+      if (statsData) {
+        setStats({
+          totalVolume: `${Number(statsData.total_volume_ml).toLocaleString()} ml`,
+          batchesToday: `${statsData.batches_today} Today`,
+          passRate: statsData.pass_rate_pct != null ? `${statsData.pass_rate_pct}%` : "0%",
+          freezerTemp: "-21.4 °C",
+        });
+      }
+    } catch (err: any) {
+      alert("Error updating status: " + err.message);
+    }
+  };
+
+  const [editingBatch, setEditingBatch] = useState<any | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editVolume, setEditVolume] = useState("");
+  const [editExpiry, setEditExpiry] = useState("");
+  const [editStorage, setEditStorage] = useState("");
+  const [editStatus, setEditStatus] = useState("pending");
+  const [editLabel, setEditLabel] = useState("Pending QC");
+
+  const [donors, setDonors] = useState<any[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addBatchId, setAddBatchId] = useState("");
+  const [addDonorId, setAddDonorId] = useState("");
+  const [addVolume, setAddVolume] = useState("");
+  const [addCollectedAt, setAddCollectedAt] = useState("");
+  const [addExpiry, setAddExpiry] = useState("");
+  const [addStatus, setAddStatus] = useState("pending");
+  const [addStorage, setAddStorage] = useState("");
+
+  const loadDonors = async () => {
+    try {
+      const { data } = await supabase
+        .from("donor_profiles")
+        .select("id, full_name, display_id")
+        .order("full_name");
+      if (data) {
+        setDonors(data);
+      }
+    } catch (err) {
+      console.error("Error loading donors:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadDonors();
+  }, []);
+
+  const handleSubmitAddBatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addBatchId.trim() || !addDonorId || !addVolume || !addCollectedAt || !addExpiry) {
+      alert("Please fill out all required fields.");
+      return;
+    }
+
+    let finalLabel = "Pending QC";
+    if (addStatus === "verified") finalLabel = "Verified";
+    else if (addStatus === "fail") finalLabel = "Failed";
+    else if (addStatus === "neutral") finalLabel = "Neutral";
+
+    try {
+      const { error } = await supabase
+        .from("inventory_batches")
+        .insert([{
+          batch_id: addBatchId.trim(),
+          donor_id: addDonorId,
+          volume_ml: Number(addVolume),
+          collected_at: new Date(addCollectedAt).toISOString(),
+          expiry_date: addExpiry,
+          lab_status: addStatus,
+          lab_label: finalLabel,
+          storage_location: addStorage.trim() || null
+        }]);
+
+      if (error) throw error;
+
+      alert(`Success! Created batch: ${addBatchId}`);
+      setIsAddModalOpen(false);
+      // Reset form
+      setAddBatchId("");
+      setAddDonorId("");
+      setAddVolume("");
+      setAddCollectedAt("");
+      setAddExpiry("");
+      setAddStatus("pending");
+      setAddStorage("");
+      // Reload inventory data
+      loadData();
+    } catch (err: any) {
+      alert("Error adding batch: " + err.message);
+    }
+  };
+
+  const openEditModal = (batch: any) => {
+    setEditingBatch(batch);
+    setEditVolume(String(batch.volumeMl));
+    setEditExpiry(batch.rawExpiry || "");
+    setEditStorage(batch.storage === "N/A" ? "" : batch.storage);
+    setEditStatus(batch.labStatus);
+    setEditLabel(batch.labLabel);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBatch) return;
+
+    let finalLabel = editLabel;
+    if (editStatus !== editingBatch.labStatus && editLabel === editingBatch.labLabel) {
+      if (editStatus === "verified") finalLabel = "Verified";
+      else if (editStatus === "fail") finalLabel = "Failed";
+      else if (editStatus === "pending") finalLabel = "Pending QC";
+      else if (editStatus === "neutral") finalLabel = "Neutral";
+    }
+
+    try {
+      const { error } = await supabase
+        .from("inventory_batches")
+        .update({
+          volume_ml: Number(editVolume),
+          expiry_date: editExpiry,
+          storage_location: editStorage || null,
+          lab_status: editStatus,
+          lab_label: finalLabel
+        })
+        .eq("batch_id", editingBatch.batchId);
+
+      if (error) throw error;
+
+      alert("Batch updated successfully!");
+      setIsEditModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      alert("Error updating batch: " + err.message);
+    }
+  };
 
   const filteredBatches = batches.filter((batch) => {
     // 1. Status Filter
@@ -131,7 +293,15 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-lg font-semibold text-on-surface">Active Batches</h3>
-            <div className="relative">
+            <div className="flex gap-2 relative">
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:brightness-95 active:scale-[0.98] transition-all"
+              >
+                <Icon name="add" />
+                Add Batch
+              </button>
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
@@ -293,6 +463,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                       "Expiry",
                       "Lab Status",
                       "Storage",
+                      "Actions"
                     ].map((header) => (
                       <th
                         key={header}
@@ -306,7 +477,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                 <tbody>
                   {filteredBatches.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-sm font-semibold text-on-surface-variant">
+                      <td colSpan={8} className="px-4 py-8 text-center text-sm font-semibold text-on-surface-variant">
                         No batches match the selected filters.
                       </td>
                     </tr>
@@ -324,9 +495,28 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                         <td className="px-4 py-3 text-on-surface-variant">{batch.collected}</td>
                         <td className="px-4 py-3 text-on-surface-variant">{batch.expiry}</td>
                         <td className="px-4 py-3">
-                          <StatusChip label={batch.labLabel} variant={batch.labStatus} />
+                          <select
+                            value={batch.labStatus}
+                            onChange={(e) => handleStatusChange(batch.batchId, e.target.value)}
+                            className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
+                          >
+                            <option value="pending">Pending QC</option>
+                            <option value="verified">Verified</option>
+                            <option value="fail">Failed</option>
+                            <option value="neutral">Neutral</option>
+                          </select>
                         </td>
                         <td className="px-4 py-3">{batch.storage}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(batch)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-bold hover:bg-primary/5 cursor-pointer active:scale-95 transition-all"
+                          >
+                            <Icon name="edit" className="text-xs" />
+                            Edit
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -336,6 +526,276 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
           </div>
         </div>
       </main>
+
+      {/* Edit Batch Modal */}
+      {isEditModalOpen && editingBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div
+            className="absolute inset-0 bg-on-background/45 backdrop-blur-sm"
+            onClick={() => setIsEditModalOpen(false)}
+          />
+
+          <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+            <div className="bg-primary px-8 py-6 text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Edit Batch Details</h2>
+                <p className="text-primary-fixed/80 text-xs mt-1 font-semibold">
+                  Batch: {editingBatch.batchId} ({editingBatch.donor})
+                </p>
+              </div>
+              <button
+                type="button"
+                className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white"
+                onClick={() => setIsEditModalOpen(false)}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="p-8 space-y-5">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                    Volume (mL) *
+                  </label>
+                  <input
+                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                    type="number"
+                    required
+                    value={editVolume}
+                    onChange={(e) => setEditVolume(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                    Expiry Date *
+                  </label>
+                  <input
+                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                    type="date"
+                    required
+                    value={editExpiry}
+                    onChange={(e) => setEditExpiry(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                    Storage Location
+                  </label>
+                  <input
+                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                    type="text"
+                    placeholder="e.g. Freezer A-12"
+                    value={editStorage}
+                    onChange={(e) => setEditStorage(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Lab Status
+                    </label>
+                    <select
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white"
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                    >
+                      <option value="pending">Pending QC</option>
+                      <option value="verified">Verified</option>
+                      <option value="fail">Failed</option>
+                      <option value="neutral">Neutral</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Lab Label
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                      type="text"
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] cursor-pointer"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 py-3 border border-outline text-on-surface-variant font-bold rounded-xl hover:bg-surface-container transition-all cursor-pointer"
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div
+            className="absolute inset-0 bg-on-background/45 backdrop-blur-sm"
+            onClick={() => setIsAddModalOpen(false)}
+          />
+
+          <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+            <div className="bg-primary px-8 py-6 text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Add New Batch</h2>
+                <p className="text-primary-fixed/80 text-xs mt-1 font-semibold">
+                  Register a new milk batch in inventory
+                </p>
+              </div>
+              <button
+                type="button"
+                className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white"
+                onClick={() => setIsAddModalOpen(false)}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitAddBatch} className="p-8 space-y-5">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                    Batch ID *
+                  </label>
+                  <input
+                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                    type="text"
+                    required
+                    placeholder="e.g. MB-2026-0001"
+                    value={addBatchId}
+                    onChange={(e) => setAddBatchId(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                    Donor *
+                  </label>
+                  <select
+                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white"
+                    required
+                    value={addDonorId}
+                    onChange={(e) => setAddDonorId(e.target.value)}
+                  >
+                    <option value="">Select Donor...</option>
+                    {donors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.full_name} ({d.display_id})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Volume (mL) *
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                      type="number"
+                      required
+                      placeholder="e.g. 450"
+                      value={addVolume}
+                      onChange={(e) => setAddVolume(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Storage Location
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                      type="text"
+                      placeholder="e.g. Freezer A-12"
+                      value={addStorage}
+                      onChange={(e) => setAddStorage(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Collected At *
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-xs"
+                      type="datetime-local"
+                      required
+                      value={addCollectedAt}
+                      onChange={(e) => setAddCollectedAt(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Expiry Date *
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                      type="date"
+                      required
+                      value={addExpiry}
+                      onChange={(e) => setAddExpiry(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                    Initial Lab Status
+                  </label>
+                  <select
+                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white"
+                    value={addStatus}
+                    onChange={(e) => setAddStatus(e.target.value)}
+                  >
+                    <option value="pending">Pending QC</option>
+                    <option value="verified">Verified</option>
+                    <option value="fail">Failed</option>
+                    <option value="neutral">Neutral</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] cursor-pointer"
+                >
+                  Create Batch
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 py-3 border border-outline text-on-surface-variant font-bold rounded-xl hover:bg-surface-container transition-all cursor-pointer"
+                  onClick={() => setIsAddModalOpen(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

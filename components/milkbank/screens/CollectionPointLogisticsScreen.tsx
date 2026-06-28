@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { LogisticsSubNav } from "@/components/milkbank/layout/LogisticsSubNav";
 import { Icon } from "@/components/milkbank/ui/Icon";
@@ -145,8 +146,9 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
 
                   {/* Info Tooltip Card */}
                   <div
-                    className={`absolute bottom-12 left-1/2 -translate-x-1/2 w-64 rounded-xl bg-white/80 p-4 border border-slate-500/10 shadow-2xl backdrop-blur-md transition-all duration-300 pointer-events-none ${
-                      isOpened ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"
+                    onClick={(e) => e.stopPropagation()}
+                    className={`absolute bottom-12 left-1/2 -translate-x-1/2 w-64 rounded-xl bg-white/80 p-4 border border-slate-500/10 shadow-2xl backdrop-blur-md transition-all duration-300 ${
+                      isOpened ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-95 translate-y-2 pointer-events-none"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -175,9 +177,22 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
                     <h4 className="text-sm font-bold text-on-surface mb-1">{point.name}</h4>
                     
                     {isHospital ? (
-                      <p className="text-xs text-on-surface-variant leading-snug">
-                        Primary reception center. Operational 24/7 for lab analysis.
-                      </p>
+                      <div>
+                        <p className="text-xs text-on-surface-variant leading-snug">
+                          Primary reception center. Operational 24/7 for lab analysis.
+                        </p>
+                        {point.id === "FC-01" && (
+                          <div className="mt-3 pt-2 border-t border-outline-variant/30 flex justify-end">
+                            <Link
+                              href="/onsite-collection-terminal"
+                              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline cursor-pointer"
+                            >
+                              <span>Open Collection Terminal</span>
+                              <Icon name="arrow_forward" className="text-xs" />
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <>
                         <p className="text-xs text-on-surface-variant mb-3 leading-snug">

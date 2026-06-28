@@ -245,66 +245,192 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
             </div>
           </div>
 
-          {/* Bento Grid Content */}
+          {/* Redesigned Workspace Layout */}
           <div className="grid grid-cols-12 gap-6 items-start">
 
-            {/* Left Column: Donor & Intake */}
-            <div className="col-span-12 lg:col-span-9 space-y-6">
+            {/* Left Sidebar: Batch Info & Metrics */}
+            <div className="col-span-12 lg:col-span-4 space-y-6">
 
-              {/* Search & Quick Action */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative group">
-                  <Icon name="person_search" className="absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" />
-                  <input
-                    className="w-full pl-12 pr-4 py-4 bg-white border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm font-semibold text-on-surface shadow-sm"
-                    placeholder="Search Donor by Name, ID, or Phone..."
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                  />
+              {/* Batch Status Panel */}
+              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-base font-bold text-on-surface">Active Collection Batch</h3>
+                  <Icon name="inventory_2" className="text-primary" />
+                </div>
+
+                <div className="space-y-4">
+                  {batches.map((batch) => {
+                    const isOpen = batch.status === "OPEN";
+                    return (
+                      <div
+                        key={batch.id}
+                        className={`p-4 rounded-lg border flex items-start gap-4 ${isOpen
+                          ? "bg-surface-container-low border-outline-variant/40 animate-pulse-slow"
+                          : "border-outline-variant/20 opacity-70"
+                          }`}
+                      >
+                        <div className={`w-1.5 h-12 rounded-full ${isOpen ? "bg-secondary" : "bg-outline"}`} />
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-on-surface">{batch.id}</span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isOpen ? "bg-secondary-container/20 text-secondary" : "bg-surface-container text-on-surface-variant"
+                              }`}>
+                              {batch.status}
+                            </span>
+                          </div>
+
+                          <p className="text-xs text-on-surface-variant mt-1 font-semibold">
+                            {batch.entries} Entries • {batch.volumeL}L Total
+                          </p>
+
+                          {isOpen ? (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                className="text-[10px] font-bold text-primary uppercase hover:underline cursor-pointer"
+                              >
+                                View manifest
+                              </button>
+                              <button
+                                type="button"
+                                className="text-[10px] font-bold text-on-surface-variant uppercase hover:underline cursor-pointer"
+                              >
+                                Print tags
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-outline mt-2 italic font-semibold">{batch.timeLabel}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <button
+                  onClick={handleInitiateBatch}
                   type="button"
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex items-center justify-center gap-3 bg-primary-dark text-white font-bold py-4 px-6 rounded-xl hover:bg-black transition-colors shadow-sm active:scale-[0.98] cursor-pointer"
+                  className="w-full mt-6 py-3 border-2 border-dashed border-outline-variant text-on-surface-variant rounded-xl font-bold text-sm hover:bg-surface-container transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Icon name="person_add" />
-                  <span>Register Walk-In Donor</span>
+                  <Icon name="add_box" />
+                  <span>Initiate New Batch</span>
                 </button>
               </div>
 
-              {/* Donation Form Card */}
-              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-outline-variant/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
-                      <Icon name="water_drop" filled className="text-xl" />
-                    </div>
+              {/* Real-time Metrics Card */}
+              <div className="bg-primary-dark rounded-xl p-6 text-white shadow-xl relative overflow-hidden">
+                <div className="relative z-10">
+                  <h3 className="text-xs font-bold text-primary-fixed/60 uppercase mb-4 tracking-wider">
+                    Current Session Metrics
+                  </h3>
+                  <div className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-bold text-on-surface">Intake Session Details</h3>
-                      <p className="text-xs font-semibold text-on-surface-variant uppercase">
-                        Current Donor: <span className="font-bold text-on-surface">{currentDonor.name} (ID: {currentDonor.id})</span>
-                      </p>
+                      <div className="flex justify-between items-end mb-2">
+                        <span className="text-3xl font-bold">12/20</span>
+                        <span className="text-xs text-primary-fixed/60 font-semibold">Bottles Remaining</span>
+                      </div>
+                      <div className="w-full bg-primary-fixed/20 h-2 rounded-full overflow-hidden">
+                        <div className="bg-primary-container h-full w-[60%] rounded-full shadow-[0_0_10px_rgba(171,138,255,0.5)]"></div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 font-bold">
+                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                        <span className="text-[10px] text-primary-fixed/60 block uppercase">Avg. Temp</span>
+                        <span className="text-xl font-bold">-18.4°C</span>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                        <span className="text-[10px] text-primary-fixed/60 block uppercase">Staff Onsite</span>
+                        <span className="text-xl font-bold">03</span>
+                      </div>
                     </div>
                   </div>
+                </div>
 
+                <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
+                  <Icon name="analytics" className="text-[160px]" />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Column: Workflow Steps & Logs */}
+            <div className="col-span-12 lg:col-span-8 space-y-6">
+
+              {/* Step 1: Donor Identification Kiosk */}
+              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">1</span>
+                  <h3 className="text-base font-bold text-on-surface">Identify &amp; Select Donor</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative group md:col-span-2">
+                    <Icon name="person_search" className="absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" />
+                    <input
+                      className="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm font-semibold text-on-surface"
+                      placeholder="Search Donor by Name, ID, or Phone..."
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center justify-center gap-2 bg-primary-dark text-white font-bold py-3 px-4 rounded-xl hover:bg-black transition-colors shadow-sm active:scale-[0.98] cursor-pointer text-sm"
+                  >
+                    <Icon name="person_add" className="text-sm" />
+                    <span>Register Walk-In</span>
+                  </button>
+                </div>
+
+                {currentDonor && (
+                  <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl animate-in fade-in duration-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <Icon name="account_circle" className="text-2xl" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-primary uppercase tracking-wider">Active Donor Profile</p>
+                        <p className="text-sm font-bold text-on-surface">{currentDonor.name} (ID: {currentDonor.id})</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentDonor(defaultDonor)}
+                      className="text-xs font-bold text-on-surface-variant hover:text-error transition-colors px-3 py-1 border border-outline rounded-lg cursor-pointer hover:bg-error-container/20"
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Step 2: Intake Details Form */}
+              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">2</span>
+                    <h3 className="text-base font-bold text-on-surface">Record Donation Details</h3>
+                  </div>
                   <div className="text-right">
-                    <span className="text-xs font-semibold text-on-surface-variant block">Batch Assignment</span>
-                    <span className="text-xs font-bold bg-primary/15 px-2 py-1 rounded text-primary uppercase">
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase block">Target Batch</span>
+                    <span className="text-xs font-bold text-secondary uppercase">
                       {batches.find(b => b.status === "OPEN")?.id || "None Open"}
                     </span>
                   </div>
                 </div>
 
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-2">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Donation Volume (mL)
                     </label>
                     <div className="relative">
                       <input
-                        className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold"
+                        className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
                         placeholder="0.00"
                         type="number"
                         value={volume}
@@ -320,7 +446,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                     </label>
                     <div className="relative">
                       <input
-                        className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold"
+                        className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
                         placeholder="-18.0"
                         step="0.1"
                         type="number"
@@ -348,7 +474,7 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                       Milk Type / Status
                     </label>
                     <select
-                      className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold"
+                      className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold bg-white"
                       value={milkType}
                       onChange={(e) => setMilkType(e.target.value)}
                     >
@@ -398,10 +524,13 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                 </form>
               </div>
 
-              {/* Recent Entries Log */}
+              {/* Step 3: Session Logs */}
               <div className="bg-white rounded-xl border border-outline-variant/35 overflow-hidden shadow-sm">
                 <div className="px-6 py-4 border-b border-outline-variant/25 bg-surface-container-low flex justify-between items-center">
-                  <h3 className="text-base font-bold text-on-surface">Today&apos;s Local Session Log</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">3</span>
+                    <h3 className="text-base font-bold text-on-surface">Today&apos;s Local Session Log</h3>
+                  </div>
                   <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                     Total: {totalVolumeL} Liters
                   </span>
@@ -457,111 +586,6 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                 </div>
               </div>
 
-            </div>
-
-            {/* Right Column: Batch & Tracking */}
-            <div className="col-span-12 lg:col-span-3 space-y-6">
-
-              {/* Real-time Metrics Card */}
-              <div className="bg-primary-dark rounded-xl p-6 text-white shadow-xl relative overflow-hidden">
-                <div className="relative z-10">
-                  <h3 className="text-xs font-bold text-primary-fixed/60 uppercase mb-4 tracking-wider">
-                    Current Session Metrics
-                  </h3>
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex justify-between items-end mb-2">
-                        <span className="text-3xl font-bold">12/20</span>
-                        <span className="text-xs text-primary-fixed/60 font-semibold">Bottles Remaining</span>
-                      </div>
-                      <div className="w-full bg-primary-fixed/20 h-2 rounded-full overflow-hidden">
-                        <div className="bg-primary-container h-full w-[60%] rounded-full shadow-[0_0_10px_rgba(171,138,255,0.5)]"></div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 font-bold">
-                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <span className="text-[10px] text-primary-fixed/60 block uppercase">Avg. Temp</span>
-                        <span className="text-xl font-bold">-18.4°C</span>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <span className="text-[10px] text-primary-fixed/60 block uppercase">Staff Onsite</span>
-                        <span className="text-xl font-bold">03</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
-                  <Icon name="analytics" className="text-[160px]" />
-                </div>
-              </div>
-
-              {/* Batch Status Panel */}
-              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-base font-bold text-on-surface">Batch Tracking</h3>
-                  <Icon name="history" className="text-outline" />
-                </div>
-
-                <div className="space-y-4">
-                  {batches.map((batch) => {
-                    const isOpen = batch.status === "OPEN";
-                    return (
-                      <div
-                        key={batch.id}
-                        className={`p-4 rounded-lg border flex items-start gap-4 ${isOpen
-                          ? "bg-surface-container-low border-outline-variant/40"
-                          : "border-outline-variant/20 opacity-70"
-                          }`}
-                      >
-                        <div className={`w-1.5 h-12 rounded-full ${isOpen ? "bg-secondary" : "bg-outline"}`} />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-on-surface">{batch.id}</span>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isOpen ? "bg-secondary-container/20 text-secondary" : "bg-surface-container text-on-surface-variant"
-                              }`}>
-                              {batch.status}
-                            </span>
-                          </div>
-
-                          <p className="text-xs text-on-surface-variant mt-1 font-semibold">
-                            {batch.entries} Entries • {batch.volumeL}L Total
-                          </p>
-
-                          {isOpen ? (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                className="text-[10px] font-bold text-primary uppercase hover:underline cursor-pointer"
-                              >
-                                View manifest
-                              </button>
-                              <button
-                                type="button"
-                                className="text-[10px] font-bold text-on-surface-variant uppercase hover:underline cursor-pointer"
-                              >
-                                Print tags
-                              </button>
-                            </div>
-                          ) : (
-                            <p className="text-[10px] text-outline mt-2 italic font-semibold">{batch.timeLabel}</p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <button
-                  onClick={handleInitiateBatch}
-                  type="button"
-                  className="w-full mt-6 py-3 border-2 border-dashed border-outline-variant text-on-surface-variant rounded-xl font-bold text-sm hover:bg-surface-container transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Icon name="add_box" />
-                  <span>Initiate New Batch</span>
-                </button>
-              </div>
             </div>
 
           </div>
