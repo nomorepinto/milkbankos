@@ -25,6 +25,13 @@ export interface DonorRow {
 
 export interface DonorDirectoryScreenProps { }
 
+const STATUS_OPTIONS = [
+  { value: "verified", label: "Active" },
+  { value: "neutral", label: "Inactive" },
+  { value: "fail", label: "Flagged" },
+  { value: "pending", label: "Pending" },
+];
+
 export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -42,6 +49,51 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
+  const [selectedDonor, setSelectedDonor] = useState<DonorRow | null>(null);
+  const [editStatus, setEditStatus] = useState<string>("");
+  const [editVerification, setEditVerification] = useState<string>("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleSelectDonor = (donor: DonorRow) => {
+    setSelectedDonor(donor);
+    setEditStatus(donor.status);
+    setEditVerification(donor.verification);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!selectedDonor) return;
+    setIsUpdating(true);
+    try {
+      const selectedOption = STATUS_OPTIONS.find(opt => opt.value === editStatus);
+      const statusLabel = selectedOption ? selectedOption.label : "Pending";
+
+      const { error } = await supabase
+        .from("donor_profiles")
+        .update({
+          status: editStatus,
+          status_label: statusLabel,
+          verification_note: editVerification,
+        })
+        .eq("display_id", selectedDonor.id);
+
+      if (error) throw error;
+
+      // Add activity log
+      await supabase.from("activity_logs").insert({
+        message: `Updated status of donor ${selectedDonor.name} (${selectedDonor.id}) to ${statusLabel}`,
+      });
+
+      setSelectedDonor(null);
+      setRefreshTrigger(prev => prev + 1);
+    } catch (err) {
+      console.error("Error updating donor:", err);
+      alert("Failed to update donor information.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   useEffect(() => {
     async function loadStatsAndLogs() {
@@ -77,7 +129,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
       }
     }
     loadStatsAndLogs();
-  }, []);
+  }, [refreshTrigger]);
 
   useEffect(() => {
     async function fetchDonors() {
@@ -133,7 +185,41 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
       }
     }
     fetchDonors();
-  }, [searchQuery, statusFilter, sortBy, currentPage]);
+  }, [searchQuery, statusFilter, sortBy, currentPage, refreshTrigger]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const donorId = params.get("donorId");
+    if (donorId) {
+      async function loadHighlightedDonor() {
+        const { data, error } = await supabase
+          .from("donor_profiles")
+          .select("*")
+          .eq("display_id", donorId)
+          .single();
+
+        if (data && !error) {
+          const row: DonorRow = {
+            id: data.display_id,
+            name: data.full_name,
+            status: data.status,
+            statusLabel: data.status_label,
+            lastDonation: data.last_donation_at || "N/A",
+            totalVolume: `${(data.total_volume_ml / 1000).toFixed(1)} L`,
+            screeningDue: data.screening_due,
+            contact: data.contact_phone || "N/A",
+            cycles: data.donation_cycles,
+            verification: data.verification_note || "N/A",
+            avatarUrl: data.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+          };
+          setSelectedDonor(row);
+          setEditStatus(row.status);
+          setEditVerification(row.verification);
+        }
+      }
+      loadHighlightedDonor();
+    }
+  }, []);
 
   const totalPages = Math.ceil(totalCount / 10);
 
@@ -317,7 +403,8 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
                     donors.map((donor, i) => (
                       <tr
                         key={donor.id}
-                        className={`hover:bg-surface-container-low/30 transition-colors ${i % 2 === 1 ? "bg-surface-container-low/10" : ""
+                        onClick={() => handleSelectDonor(donor)}
+                        className={`hover:bg-surface-container-low/30 transition-colors cursor-pointer ${i % 2 === 1 ? "bg-surface-container-low/10" : ""
                           }`}
                       >
                         <td className="px-6 py-4">
@@ -417,6 +504,155 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
           </div>
         </main>
       </div>
+
+      {/* Modal */}
+      {selectedDonor && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-surface-container-lowest border border-outline-variant/30 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low">
+              <h3 className="text-xl font-bold text-on-surface">Donor Profile Details</h3>
+              <button
+                type="button"
+                onClick={() => setSelectedDonor(null)}
+                className="p-1 rounded-full hover:bg-surface-container text-outline transition-colors cursor-pointer"
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-16rem)]">
+              {/* Profile Card */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 bg-surface-container-low/30 p-4 rounded-xl border border-outline-variant/10">
+                <img
+                  alt={selectedDonor.name}
+                  className="w-16 h-16 rounded-full object-cover bg-surface-container-high border-2 border-primary/20"
+                  src={selectedDonor.avatarUrl}
+                />
+                <div className="text-center sm:text-left flex-grow">
+                  <h4 className="text-lg font-bold text-on-surface">{selectedDonor.name}</h4>
+                  <div className="text-outline text-xs mt-0.5">ID: {selectedDonor.id}</div>
+                  <div className="text-on-surface-variant text-sm mt-1">{selectedDonor.contact}</div>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
+                  <div className="bg-surface-container-high px-3 py-1.5 rounded-lg text-center">
+                    <div className="text-xs text-outline font-semibold">Total Volume</div>
+                    <div className="text-sm font-bold text-on-surface">{selectedDonor.totalVolume}</div>
+                  </div>
+                  <div className="bg-surface-container-high px-3 py-1.5 rounded-lg text-center">
+                    <div className="text-xs text-outline font-semibold">Cycles</div>
+                    <div className="text-sm font-bold text-on-surface">{selectedDonor.cycles}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status and Details Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 space-y-2">
+                  <div className="text-xs font-bold text-outline uppercase tracking-wider">Registry Info</div>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-on-surface-variant">Last Donation:</span>
+                      <span className="font-semibold text-on-surface">{selectedDonor.lastDonation}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-on-surface-variant">Screening Due:</span>
+                      <span className="font-semibold text-on-surface">
+                        {selectedDonor.screeningDue ? (
+                          <span className="text-error flex items-center gap-1">
+                            <Icon name="warning" className="text-sm" /> Yes
+                          </span>
+                        ) : (
+                          <span className="text-secondary flex items-center gap-1">
+                            <Icon name="check_circle" className="text-sm" /> No
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 space-y-2">
+                  <div className="text-xs font-bold text-outline uppercase tracking-wider">Current Verification</div>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-on-surface-variant">Status Chip:</span>
+                      <StatusChip label={selectedDonor.statusLabel} variant={selectedDonor.status} />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-on-surface-variant">Verification Note:</span>
+                      <span className="font-semibold text-on-surface">{selectedDonor.verification}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Editable Fields */}
+              <div className="space-y-4 pt-4 border-t border-outline-variant/30">
+                <h5 className="text-sm font-bold text-on-surface uppercase tracking-wider">Edit Status &amp; Verification</h5>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase text-outline">Verification Status</label>
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                      className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface outline-none focus:border-primary font-semibold"
+                    >
+                      {STATUS_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase text-outline">Verification Note</label>
+                    <input
+                      type="text"
+                      value={editVerification}
+                      onChange={(e) => setEditVerification(e.target.value)}
+                      placeholder="e.g. Verified, Pending Re-cert, Flagged"
+                      className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-outline-variant/30 flex justify-end gap-3 bg-surface-container-low">
+              <button
+                type="button"
+                onClick={() => setSelectedDonor(null)}
+                className="px-4 py-2 border border-outline text-outline font-semibold text-sm rounded-lg hover:bg-surface-container-high transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={handleSaveChanges}
+                className="flex items-center gap-2 px-5 py-2 bg-primary text-white font-semibold text-sm rounded-lg hover:bg-primary/95 transition-shadow cursor-pointer disabled:opacity-50"
+              >
+                {isUpdating ? (
+                  <>
+                    <Icon name="sync" className="animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="save" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }
