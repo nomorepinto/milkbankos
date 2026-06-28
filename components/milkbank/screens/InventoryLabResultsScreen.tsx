@@ -29,8 +29,20 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   const loadData = async () => {
     try {
       const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
-      const { data: currentVolData } = await supabase.from("view_current_volume").select("*").single();
-      const currentVol = currentVolData ? Number(currentVolData.current_volume) : 0;
+      
+      const { data: incomingData } = await supabase
+        .from("inventory_batches")
+        .select("volume_ml")
+        .eq("lab_status", "verified");
+
+      const { data: outgoingData } = await supabase
+        .from("dispensing_records")
+        .select("volume_ml")
+        .eq("status", "verified");
+
+      const totalIncoming = incomingData ? incomingData.reduce((sum, b) => sum + (Number(b.volume_ml) || 0), 0) : 0;
+      const totalOutgoing = outgoingData ? outgoingData.reduce((sum, d) => sum + (Number(d.volume_ml) || 0), 0) : 0;
+      const currentVol = totalIncoming - totalOutgoing;
 
       if (statsData) {
         setStats({
@@ -106,8 +118,20 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
 
       // Reload stats
       const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
-      const { data: currentVolData } = await supabase.from("view_current_volume").select("*").single();
-      const currentVol = currentVolData ? Number(currentVolData.current_volume) : 0;
+      
+      const { data: incomingData } = await supabase
+        .from("inventory_batches")
+        .select("volume_ml")
+        .eq("lab_status", "verified");
+
+      const { data: outgoingData } = await supabase
+        .from("dispensing_records")
+        .select("volume_ml")
+        .eq("status", "verified");
+
+      const totalIncoming = incomingData ? incomingData.reduce((sum, b) => sum + (Number(b.volume_ml) || 0), 0) : 0;
+      const totalOutgoing = outgoingData ? outgoingData.reduce((sum, d) => sum + (Number(d.volume_ml) || 0), 0) : 0;
+      const currentVol = totalIncoming - totalOutgoing;
 
       if (statsData) {
         setStats({
@@ -117,6 +141,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
           freezerTemp: "-21.4 °C",
         });
       }
+      setHistoryRefreshKey((prev) => prev + 1);
     } catch (err: any) {
       alert("Error updating status: " + err.message);
     }
@@ -130,6 +155,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   const [editStatus, setEditStatus] = useState("pending");
   const [editLabel, setEditLabel] = useState("Pending QC");
 
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [deletingBatch, setDeletingBatch] = useState<any | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -161,6 +187,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
       setIsDeleteModalOpen(false);
       setDeletingBatch(null);
       loadData();
+      setHistoryRefreshKey((prev) => prev + 1);
     } catch (err: any) {
       alert("Error deleting batch: " + err.message);
     }
@@ -234,6 +261,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
       setAddStorage("");
       // Reload inventory data
       loadData();
+      setHistoryRefreshKey((prev) => prev + 1);
     } catch (err: any) {
       alert("Error adding batch: " + err.message);
     }
@@ -278,6 +306,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
       alert("Batch updated successfully!");
       setIsEditModalOpen(false);
       loadData();
+      setHistoryRefreshKey((prev) => prev + 1);
     } catch (err: any) {
       alert("Error updating batch: " + err.message);
     }
@@ -347,7 +376,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
           </div>
 
           <div className="mb-8">
-            <InventoryHistoryTable />
+            <InventoryHistoryTable key={historyRefreshKey} />
           </div>
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
