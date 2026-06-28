@@ -1,1 +1,1 @@
-export const APP_NAME = "PadedeHub";
+export const APP_NAME = "LactaLink";
