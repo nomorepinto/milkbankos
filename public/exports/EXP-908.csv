@@ -1,0 +1,6 @@
+id,beneficiary_id,batch_id,ward,volume_ml,dispensed_date,priority,status,status_label,dispensed_by,created_at
+"DISP-4421","b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1","MB-2024-0892","NICU-3A","120","2026-06-17","standard","pending","Scheduled","11111111-1111-1111-1111-111111111111","2026-06-19T11:21:12.35342+00:00"
+"DISP-4420","b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2","MB-2024-0891","NICU-2B","85","2026-06-17","standard","pending","Scheduled","11111111-1111-1111-1111-111111111111","2026-06-19T11:21:12.35342+00:00"
+"DISP-4419","b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3","MB-2024-0890","Pediatrics-4","200","2026-06-16","standard","verified","Dispensed","11111111-1111-1111-1111-111111111111","2026-06-19T11:21:12.35342+00:00"
+"DISP-6839","b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3","","NICU-67","150","2026-06-25","standard","pending","Scheduled","","2026-06-20T02:37:13.721054+00:00"
+"DISP-3497","b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3","","67","1000","2026-06-28","critical","verified","Dispensed","","2026-06-28T14:29:48.669677+00:00"

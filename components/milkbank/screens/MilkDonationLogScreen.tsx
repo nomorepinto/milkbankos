@@ -11,6 +11,7 @@ export interface MilkDonationLogScreenProps {}
 
 export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProps>) {
   const [rows, setRows] = useState<any[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [stats, setStats] = useState({
     totalVolume: "0",
     donations: "0",
@@ -19,6 +20,7 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
 
   useEffect(() => {
     async function loadData() {
+      setIsLoadingData(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
         let donorId = user?.id;
@@ -73,6 +75,8 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
         }
       } catch (err) {
         console.error("Error loading donations:", err);
+      } finally {
+        setIsLoadingData(false);
       }
     }
     loadData();
@@ -118,49 +122,56 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
             />
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="border-b border-outline-variant/30 bg-surface-container-low">
-                  <tr>
-                    {["Date & Time", "Volume (ml)", "Type", "Temp", "Status", "Actions"].map(
-                      (header) => (
-                        <th
-                          key={header}
-                          className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-on-surface"
-                        >
-                          {header}
-                        </th>
-                      ),
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, index) => (
-                    <tr
-                      key={row.id}
-                      className={
-                        index % 2 === 0 ? "bg-surface-container-lowest" : "bg-surface-container-low/50"
-                      }
-                    >
-                      <td className="px-6 py-4 text-on-surface">{row.dateTime}</td>
-                      <td className="px-6 py-4 font-medium tabular-nums">{row.volumeMl}</td>
-                      <td className="px-6 py-4">{row.type}</td>
-                      <td className="px-6 py-4 tabular-nums">{row.temp}</td>
-                      <td className="px-6 py-4">
-                        <StatusChip label={row.statusLabel} variant={row.status} />
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button type="button" className="text-primary hover:underline">
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {isLoadingData ? (
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-12 flex flex-col items-center justify-center space-y-4 shadow-sm">
+              <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <p className="text-sm font-semibold text-outline animate-pulse">Loading donation history...</p>
             </div>
-          </div>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left text-sm">
+                  <thead className="border-b border-outline-variant/30 bg-surface-container-low">
+                    <tr>
+                      {["Date & Time", "Volume (ml)", "Type", "Temp", "Status", "Actions"].map(
+                        (header) => (
+                          <th
+                            key={header}
+                            className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-on-surface"
+                          >
+                            {header}
+                          </th>
+                        ),
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, index) => (
+                      <tr
+                        key={row.id}
+                        className={
+                          index % 2 === 0 ? "bg-surface-container-lowest" : "bg-surface-container-low/50"
+                        }
+                      >
+                        <td className="px-6 py-4 text-on-surface">{row.dateTime}</td>
+                        <td className="px-6 py-4 font-medium tabular-nums">{row.volumeMl}</td>
+                        <td className="px-6 py-4">{row.type}</td>
+                        <td className="px-6 py-4 tabular-nums">{row.temp}</td>
+                        <td className="px-6 py-4">
+                          <StatusChip label={row.statusLabel} variant={row.status} />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button type="button" className="text-primary hover:underline">
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </AppShell>

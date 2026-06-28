@@ -24,7 +24,7 @@ const beneficiaryFormSections = [
   },
 ];
 
-export interface BeneficiaryRegistrationScreenProps {}
+export interface BeneficiaryRegistrationScreenProps { }
 
 export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegistrationScreenProps>) {
   const [formData, setFormData] = useState<Record<string, string>>({
@@ -44,6 +44,7 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
   });
 
   const [milkAvailable, setMilkAvailable] = useState("0.0L Pasteurised Milk Available");
+  const [status, setStatus] = useState<"healthy" | "critical">("healthy");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -87,6 +88,7 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
         daily_volume_ml: formData["Daily Volume (ml)"] ? Number(formData["Daily Volume (ml)"]) : null,
         feeding_frequency: formData["Frequency"] || null,
         special_instructions: formData["Special Instructions"] || null,
+        status: status,
       };
 
       if (!payload.infant_name) {
@@ -113,6 +115,7 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
         "Frequency": "",
         "Special Instructions": "",
       });
+      setStatus("healthy");
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to submit beneficiary registration.");
     } finally {
@@ -156,6 +159,34 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
               <span className="text-sm font-semibold text-secondary">
                 Optimal (14ms)
               </span>
+            </div>
+          </div>
+
+          {/* Health Status Toggle Switch */}
+          <div className="flex items-center justify-between rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
+            <div>
+              <h3 className="text-lg font-semibold text-on-surface">Health Status</h3>
+              <p className="text-xs text-on-surface-variant mt-1 font-medium">
+                Set priority status for dispensing allocation
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-sm font-bold ${status === "critical" ? "text-error" : "text-secondary"}`}>
+                {status === "critical" ? "Critical Priority" : "Healthy / Standard"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setStatus(prev => prev === "healthy" ? "critical" : "healthy")}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  status === "critical" ? "bg-error" : "bg-outline-variant"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    status === "critical" ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
           </div>
 
