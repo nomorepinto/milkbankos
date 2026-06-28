@@ -13,6 +13,7 @@ export interface BeneficiaryDispensingScreenProps { }
 interface DispensingRecord {
   id: string;
   beneficiary: string;
+  beneficiaryStatus: string;
   ward: string;
   volumeMl: number;
   date: string;
@@ -36,6 +37,7 @@ interface BeneficiaryRecord {
   daily_volume_ml?: number;
   feeding_frequency?: string;
   special_instructions?: string;
+  status?: "healthy" | "critical";
 }
 
 export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensingScreenProps>) {
@@ -58,12 +60,13 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
     try {
       const { data } = await supabase
         .from("dispensing_records")
-        .select("*, beneficiary:beneficiaries(infant_name)");
+        .select("*, beneficiary:beneficiaries(infant_name, status)");
 
       if (data) {
         setRecords(data.map((r: any) => ({
           id: r.id,
           beneficiary: r.beneficiary?.infant_name || "Unknown",
+          beneficiaryStatus: r.beneficiary?.status || "healthy",
           ward: r.ward,
           volumeMl: Number(r.volume_ml),
           date: r.dispensed_date,
@@ -193,7 +196,9 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
     }
   };
 
-  const critical = records.filter((r) => r.priority === "critical");
+  const critical = records.filter(
+    (r) => r.beneficiaryStatus === "critical" && r.status === "pending"
+  );
 
   const isFormComplete =
     !!selectedBeneficiaryId &&
@@ -201,6 +206,76 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
     !!volumeMl &&
     !!date &&
     !!status;
+
+  const renderBeneficiaryTable = (list: BeneficiaryRecord[], isCritical: boolean) => {
+    return (
+      <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1000px] text-left text-sm text-on-surface">
+            <thead className="bg-surface-container-low">
+              <tr>
+                {[
+                  "Infant Name",
+                  "MRN",
+                  "DOB",
+                  "Gestational Age",
+                  "Hospital/NICU",
+                  "Ward/Room",
+                  "Attending Physician",
+                  "Daily Volume",
+                  "Guardian Info",
+                  "Special Instructions"
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {list.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-4 py-8 text-center text-on-surface-variant/70 font-semibold">
+                    No {isCritical ? "critical care" : "healthy"} infants registered.
+                  </td>
+                </tr>
+              ) : (
+                list.map((b, i) => (
+                  <tr
+                    key={b.id}
+                    className={i % 2 === 0 ? "" : "bg-surface-container-low/50"}
+                  >
+                    <td className="px-4 py-3 font-semibold text-on-surface whitespace-nowrap">{b.infant_name}</td>
+                    <td className="px-4 py-3 font-medium text-primary tabular-nums whitespace-nowrap">{b.medical_record_number || "N/A"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{b.date_of_birth || "N/A"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{b.gestational_age || "N/A"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{b.hospital_name || "N/A"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{b.ward || "N/A"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{b.attending_physician || "N/A"}</td>
+                    <td className="px-4 py-3 font-bold text-secondary tabular-nums whitespace-nowrap">
+                      {b.daily_volume_ml ? `${b.daily_volume_ml} ml` : "N/A"} ({b.feeding_frequency || "N/A"})
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-xs">
+                        <p className="font-bold text-on-surface">{b.guardian_name || "N/A"}</p>
+                        <p className="text-outline">{b.guardian_contact || "N/A"} ({b.guardian_relationship || "N/A"})</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-on-surface-variant max-w-[200px] truncate" title={b.special_instructions}>
+                      {b.special_instructions || "None"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <AppShell activeSlug="beneficiary-dispensing">
@@ -259,13 +334,6 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                         <span className="text-sm tabular-nums">{record.volumeMl} ml</span>
                         <StatusChip label={record.statusLabel} variant={record.status} />
                       </div>
-                      <button
-                        onClick={() => handlePriorityChange(record.id, "standard")}
-                        title="Remove from Critical"
-                        className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-error-container hover:text-error text-on-surface-variant transition-colors cursor-pointer"
-                      >
-                        <Icon name="close" className="text-sm" />
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -278,7 +346,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                     <table className="w-full min-w-[720px] text-left text-sm">
                       <thead className="bg-surface-container-low">
                         <tr>
-                          {["Record ID", "Beneficiary", "Ward", "Volume", "Date", "Priority", "Status", "Change Status"].map(
+                          {["Record ID", "Beneficiary", "Ward", "Volume", "Date", "Status", "Change Status"].map(
                             (h) => (
                               <th
                                 key={h}
@@ -301,16 +369,6 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                             <td className="px-4 py-3">{record.ward}</td>
                             <td className="px-4 py-3 tabular-nums">{record.volumeMl} ml</td>
                             <td className="px-4 py-3">{record.date}</td>
-                            <td className="px-4 py-3">
-                              <select
-                                value={record.priority}
-                                onChange={(e) => handlePriorityChange(record.id, e.target.value)}
-                                className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
-                              >
-                                <option value="standard">Standard</option>
-                                <option value="critical">Critical</option>
-                              </select>
-                            </td>
                             <td className="px-4 py-3">
                               <StatusChip label={record.statusLabel} variant={record.status} />
                             </td>
@@ -355,78 +413,42 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
           )}
 
           {/* Tab 2: Beneficiary List */}
-          {activeTab === "beneficiary" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-on-surface">Registered Beneficiaries</h3>
-                <Link
-                  href="/beneficiary-registration"
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white cursor-pointer hover:brightness-95 active:scale-[0.98]"
-                >
-                  <Icon name="person_add" />
-                  Register New Beneficiary
-                </Link>
-              </div>
+          {activeTab === "beneficiary" && (() => {
+            const criticalCare = beneficiaries.filter(b => b.status === "critical");
+            const healthy = beneficiaries.filter(b => b.status === "healthy" || !b.status);
+            return (
+              <div className="space-y-8">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-on-surface">Registered Beneficiaries</h3>
+                  <Link
+                    href="/beneficiary-registration"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white cursor-pointer hover:brightness-95 active:scale-[0.98]"
+                  >
+                    <Icon name="person_add" />
+                    Register New Beneficiary
+                  </Link>
+                </div>
 
-              <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[1000px] text-left text-sm text-on-surface">
-                    <thead className="bg-surface-container-low">
-                      <tr>
-                        {[
-                          "Infant Name",
-                          "MRN",
-                          "DOB",
-                          "Gestational Age",
-                          "Hospital/NICU",
-                          "Ward/Room",
-                          "Attending Physician",
-                          "Daily Order",
-                          "Guardian Info",
-                          "Special Instructions"
-                        ].map((h) => (
-                          <th
-                            key={h}
-                            className="px-4 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
-                          >
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {beneficiaries.map((b, i) => (
-                        <tr
-                          key={b.id}
-                          className={i % 2 === 0 ? "" : "bg-surface-container-low/50"}
-                        >
-                          <td className="px-4 py-3 font-semibold text-on-surface whitespace-nowrap">{b.infant_name}</td>
-                          <td className="px-4 py-3 font-medium text-primary tabular-nums whitespace-nowrap">{b.medical_record_number || "N/A"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{b.date_of_birth || "N/A"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{b.gestational_age || "N/A"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{b.hospital_name || "N/A"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{b.ward || "N/A"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{b.attending_physician || "N/A"}</td>
-                          <td className="px-4 py-3 font-bold text-secondary tabular-nums whitespace-nowrap">
-                            {b.daily_volume_ml ? `${b.daily_volume_ml} ml` : "N/A"} ({b.feeding_frequency || "N/A"})
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-xs">
-                              <p className="font-bold text-on-surface">{b.guardian_name || "N/A"}</p>
-                              <p className="text-outline">{b.guardian_contact || "N/A"} ({b.guardian_relationship || "N/A"})</p>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-xs text-on-surface-variant max-w-[200px] truncate" title={b.special_instructions}>
-                            {b.special_instructions || "None"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Critical Care Table */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-bold text-error flex items-center gap-2">
+                    <Icon name="warning" className="text-base" />
+                    Critical Care Infants ({criticalCare.length})
+                  </h4>
+                  {renderBeneficiaryTable(criticalCare, true)}
+                </div>
+
+                {/* Healthy / Standard Table */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-bold text-secondary flex items-center gap-2">
+                    <Icon name="verified" className="text-base" />
+                    Healthy / Standard Infants ({healthy.length})
+                  </h4>
+                  {renderBeneficiaryTable(healthy, false)}
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
             </>
           )}
         </main>
