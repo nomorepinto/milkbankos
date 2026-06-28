@@ -167,6 +167,22 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
     };
   }, []);
 
+  // Auto-center and highlight pin if donorId is present in URL query parameters
+  useEffect(() => {
+    if (!map || pins.length === 0) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const donorId = params.get("donorId");
+    if (donorId) {
+      const targetPin = pins.find(p => p.id === donorId);
+      if (targetPin) {
+        map.setCenter({ lat: targetPin.latitude, lng: targetPin.longitude });
+        map.setZoom(15);
+        setActivePinId(targetPin.id);
+      }
+    }
+  }, [map, pins]);
+
   // Track map projection to synchronize React HTML pins with map lat/lng coordinates
   useEffect(() => {
     if (!map || pins.length === 0) return;
