@@ -24,7 +24,7 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
   const [dob, setDob] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("donorpassword123");
+  const [password, setPassword] = useState("");
 
   // Location Form State
   const [address, setAddress] = useState("");
@@ -44,6 +44,7 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
     dob !== "" &&
     phone.trim() !== "" &&
     email.trim() !== "" &&
+    password.trim() !== "" &&
     address.trim() !== "" &&
     area.trim() !== "" &&
     region.trim() !== "";
@@ -228,6 +229,16 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
                       placeholder="Enter email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Password</label>
+                    <input
+                      type="password"
+                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                      placeholder="Create password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
 

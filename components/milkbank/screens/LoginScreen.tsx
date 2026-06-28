@@ -53,8 +53,9 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
         // Fallback: check seeded users in public.users (for test/dev accounts)
         const { data: dbUser } = await supabase
           .from("users")
-          .select("id, role, email")
+          .select("id, role, email, encrypted_password")
           .eq("email", email)
+          .eq("encrypted_password", password)
           .single();
 
         if (dbUser) {
