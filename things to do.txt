@@ -1,0 +1,11 @@
+Inventory Lab results
+- add a way for staff to change lab results for each batch
+- add a way to edit individual lab results details
+- add an easy way to change lab status
+
+Beneciary data
+- add a way to remove and add babies to the critical priority list 
+
+Collection logistics
+-link the logistics map to collection terminal, ie the st jude pin should lead to st jude terminal
+- redesign collection terminal to make more sense
