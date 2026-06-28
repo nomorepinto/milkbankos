@@ -44,17 +44,20 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
         .select("*");
 
       if (dbPins) {
-        setPins(dbPins.map(p => {
-          return {
-            id: p.display_id,
-            name: p.full_name,
-            status: p.status,
-            statusLabel: p.status_label,
-            lastDonation: p.last_donation_at || "N/A",
-            latitude: Number(p.latitude) || 37.7749,
-            longitude: Number(p.longitude) || -122.4194
-          };
-        }));
+        setPins(dbPins
+          .filter(p => p.latitude !== null && p.longitude !== null)
+          .map(p => {
+            return {
+              id: p.display_id,
+              name: p.full_name,
+              status: p.status,
+              statusLabel: p.status_label,
+              lastDonation: p.last_donation_at || "N/A",
+              latitude: Number(p.latitude),
+              longitude: Number(p.longitude)
+            };
+          })
+        );
       }
 
       // 2. Fetch legend stats
@@ -167,7 +170,8 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
     };
   }, []);
 
-  // Auto-center and highlight pin if donorId is present in URL query parameters
+  // Auto-center and highlight pin if donorId is present in URL query parameters,
+  // otherwise auto-center the map to the first entry fetched's coordinates
   useEffect(() => {
     if (!map || pins.length === 0) return;
 
@@ -180,6 +184,8 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
         map.setZoom(15);
         setActivePinId(targetPin.id);
       }
+    } else if (pins[0]) {
+      map.setCenter({ lat: pins[0].latitude, lng: pins[0].longitude });
     }
   }, [map, pins]);
 
