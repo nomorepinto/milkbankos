@@ -194,8 +194,8 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
     if (!map || pins.length === 0) return;
 
     const overlay = new google.maps.OverlayView();
-    overlay.onAdd = () => {};
-    overlay.onRemove = () => {};
+    overlay.onAdd = () => { };
+    overlay.onRemove = () => { };
     overlay.draw = () => {
       const projection = overlay.getProjection();
       if (!projection) return;
@@ -447,37 +447,6 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
               );
             })}
           </div>
-
-          {/* Floating Navigation Stats (Bottom Right) */}
-          <div className="absolute bottom-6 right-6 z-10 w-64 rounded-2xl border border-outline-variant/30 bg-white/90 p-4 shadow-xl backdrop-blur-md">
-            <div className="mb-4 flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface">Regional Activity</h4>
-              <Icon name="trending_up" className="text-secondary" />
-            </div>
-            <div className="space-y-3">
-              {regions.map((region, idx) => (
-                <div key={region.name}>
-                  <div className="mb-1 flex justify-between text-[11px]">
-                    <span className="text-on-surface-variant">{region.name}</span>
-                    <span className="font-bold text-on-surface">{region.percentage}</span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-surface-container">
-                    <div
-                      className={`h-full rounded-full ${idx % 2 === 0 ? "bg-primary" : "bg-secondary"}`}
-                      style={{ width: region.percentage }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="mt-4 w-full rounded-lg bg-primary-dark py-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-black transition-colors cursor-pointer"
-            >
-              Download Map Data
-            </button>
-          </div>
-
         </div>
       </div>
     </AppShell>

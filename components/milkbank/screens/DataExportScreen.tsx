@@ -6,7 +6,7 @@ import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
 import { supabase } from "@/lib/supabaseClient";
 
-export interface DataExportScreenProps {}
+export interface DataExportScreenProps { }
 
 export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
   const [format, setFormat] = useState("CSV");
@@ -177,8 +177,8 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
           <div className="mb-6">
             <h2 className="text-3xl font-bold text-on-surface">Data Export Hub</h2>
           </div>
-          <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid gap-8">
+            <div className="space-y-6">
 
               <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
                 <h3 className="mb-6 flex items-center gap-2 text-lg font-semibold">
@@ -290,27 +290,6 @@ export function DataExportScreen(_props: Readonly<DataExportScreenProps>) {
                 </div>
               </div>
             </div>
-
-            <aside className="space-y-4">
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-6">
-                <p className="text-xs font-semibold uppercase text-on-surface-variant">
-                  Preview Rows
-                </p>
-                <p className="mt-2 text-3xl font-bold text-on-surface">{stats.previewRows}</p>
-              </div>
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6">
-                <p className="text-xs font-semibold uppercase text-on-surface-variant">
-                  Encryption
-                </p>
-                <p className="mt-2 text-xl font-semibold">{stats.encryption}</p>
-              </div>
-              <div className="rounded-xl border border-primary/30 bg-primary-container/10 p-6">
-                <h4 className="font-semibold text-on-surface">Need a Custom Dataset?</h4>
-                <p className="mt-2 text-sm text-on-surface-variant">
-                  Contact the data team for bespoke regulatory exports.
-                </p>
-              </div>
-            </aside>
           </div>
         </div>
       </main>

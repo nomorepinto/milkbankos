@@ -318,26 +318,28 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
               {/* Tab 1: Dispensing Records */}
               {activeTab === "dispensing" && (
                 <div className="space-y-8">
-              <div className="rounded-xl border border-tertiary/30 bg-tertiary/5 p-6">
-                <h4 className="text-lg font-semibold text-tertiary">
-                  Critical Priority: Premature Infants
-                </h4>
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  {critical.map((record) => (
-                    <div
-                      key={record.id}
-                      className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-4 relative group"
-                    >
-                      <h5 className="font-semibold text-on-surface">{record.beneficiary}</h5>
-                      <p className="text-sm text-on-surface-variant">{record.ward}</p>
-                      <div className="mt-3 flex items-center justify-between">
-                        <span className="text-sm tabular-nums">{record.volumeMl} ml</span>
-                        <StatusChip label={record.statusLabel} variant={record.status} />
+              {critical.length > 0 && (
+                <div className="rounded-xl border border-tertiary/30 bg-tertiary/5 p-6">
+                  <h4 className="text-lg font-semibold text-tertiary">
+                    Critical Priority: Premature Infants
+                  </h4>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    {critical.map((record) => (
+                      <div
+                        key={record.id}
+                        className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-4 relative group"
+                      >
+                        <h5 className="font-semibold text-on-surface">{record.beneficiary}</h5>
+                        <p className="text-sm text-on-surface-variant">{record.ward}</p>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="text-sm tabular-nums">{record.volumeMl} ml</span>
+                          <StatusChip label={record.statusLabel} variant={record.status} />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <h3 className="text-xl font-bold text-on-surface mb-4">NICU Monitoring Flow</h3>

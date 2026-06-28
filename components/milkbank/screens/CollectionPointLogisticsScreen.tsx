@@ -73,10 +73,10 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
         setLatitude(data.lat);
         setLongitude(data.lng);
         const components = data.addressComponents || [];
-        
+
         let foundArea = "";
         let foundRegion = "";
-        
+
         for (const comp of components) {
           if (comp.types.includes("neighborhood") || comp.types.includes("sublocality") || comp.types.includes("locality")) {
             foundArea = comp.long_name;
@@ -85,7 +85,7 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
             foundRegion = comp.long_name;
           }
         }
-        
+
         setArea(foundArea || "SOMA");
         setRegion(foundRegion || "Metropolitan North");
       }
@@ -106,7 +106,7 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
     setIsSaving(true);
     try {
       const generatedEmail = `hosp_${hospitalName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now()}@hospital.milkbank.org`;
-      
+
       // 1. Insert user
       const { data: newUser, error: userErr } = await supabase
         .from("users")
@@ -511,64 +511,6 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
                 <span className="text-sm">Add New Collection Point</span>
               </button>
             </div>
-
-            {/* Bottom Left Controls: Legend & Stats */}
-            <div className="flex flex-wrap gap-4 mt-auto pointer-events-auto items-end">
-
-              {/* Legend */}
-              <div className="bg-white/80 border border-slate-500/10 rounded-xl p-4 space-y-3 shadow-md backdrop-blur-md w-64">
-                <h5 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                  Filter Legend
-                </h5>
-                <label className="flex items-center justify-between group cursor-pointer text-xs font-semibold text-on-surface">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center">
-                      <Icon name="local_hospital" className="text-lg" />
-                    </div>
-                    <span>Fixed Centers</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={showFixedCenters}
-                    onChange={(e) => setShowFixedCenters(e.target.checked)}
-                    className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary cursor-pointer"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between group cursor-pointer text-xs font-semibold text-on-surface">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-secondary text-white rounded-lg flex items-center justify-center">
-                      <Icon name="local_shipping" className="text-lg" />
-                    </div>
-                    <span>Mobile Hubs</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={showMobileHubs}
-                    onChange={(e) => setShowMobileHubs(e.target.checked)}
-                    className="h-4 w-4 rounded border-outline-variant text-secondary focus:ring-secondary cursor-pointer"
-                  />
-                </label>
-              </div>
-
-              {/* Stats Overview */}
-              <div className="bg-white/80 border border-slate-500/10 rounded-xl p-4 flex gap-8 shadow-md backdrop-blur-md font-bold">
-                <div className="border-r border-outline-variant/35 pr-8">
-                  <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Active Hubs</p>
-                  <p className="text-2xl text-primary font-bold">{stats.activeHubs}</p>
-                </div>
-                <div className="border-r border-outline-variant/35 pr-8">
-                  <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Today&apos;s Intake</p>
-                  <p className="text-2xl text-secondary font-bold">{stats.todayIntake}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Live Donors</p>
-                  <p className="text-2xl text-tertiary font-bold">{stats.liveDonors}</p>
-                </div>
-              </div>
-
-            </div>
-
           </div>
 
           {/* Floating Map Zoom Actions */}

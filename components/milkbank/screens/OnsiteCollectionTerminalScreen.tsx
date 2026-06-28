@@ -47,16 +47,25 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
         loadedHospitals = hospitalData;
       }
 
-      // Check query params for hospitalId redirection and determine active hospital
+      // Check query params or localStorage or default to first hospital
       let selectedHosp: any = null;
       if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
-        const hospitalIdParam = params.get("hospitalId");
+        let hospitalIdParam = params.get("hospitalId");
+        if (!hospitalIdParam) {
+          hospitalIdParam = localStorage.getItem("last_selected_hospital_id");
+        }
         if (hospitalIdParam) {
           selectedHosp = loadedHospitals.find(
             (h) => h.display_id === hospitalIdParam || h.id === hospitalIdParam
           ) || null;
+        }
+        if (!selectedHosp && loadedHospitals.length > 0) {
+          selectedHosp = loadedHospitals[0];
+        }
+        if (selectedHosp) {
           setActiveHospital(selectedHosp);
+          localStorage.setItem("last_selected_hospital_id", selectedHosp.id);
         }
       }
 
@@ -245,17 +254,6 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
                   Onsite Collection Terminal
                 </span>
               </h2>
-              <p className="text-sm font-medium text-on-surface-variant mt-1">
-                Field UI utilized by clinicians and staff processing dynamic collection batches on location
-              </p>
-            </div>
-
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-semibold text-on-surface-variant mb-1">Sync Status</span>
-              <div className="flex items-center gap-2 bg-secondary/10 text-secondary px-3 py-1 rounded-lg border border-secondary/20">
-                <Icon name="cloud_done" className="text-sm" />
-                <span className="text-xs font-bold">Connected to Central System</span>
-              </div>
             </div>
           </div>
 

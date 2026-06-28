@@ -262,7 +262,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <StatCard
               label="Active Donors"
               value={stats.activeDonors}
@@ -274,18 +274,6 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
               value={stats.totalVolume}
               icon="water_drop"
               accent="secondary"
-            />
-            <StatCard
-              label="Pending Certs"
-              value={stats.newThisMonth}
-              icon="verified"
-              accent="neutral"
-            />
-            <StatCard
-              label="Due Screening"
-              value={stats.dueScreening}
-              icon="warning"
-              accent="tertiary"
             />
           </div>
 
@@ -492,11 +480,10 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
                       key={p}
                       type="button"
                       onClick={() => setCurrentPage(p)}
-                      className={`w-8 h-8 rounded text-xs font-semibold cursor-pointer ${
-                        currentPage === p
-                          ? "bg-primary text-white"
-                          : "hover:bg-surface-container text-on-surface"
-                      }`}
+                      className={`w-8 h-8 rounded text-xs font-semibold cursor-pointer ${currentPage === p
+                        ? "bg-primary text-white"
+                        : "hover:bg-surface-container text-on-surface"
+                        }`}
                     >
                       {p}
                     </button>
@@ -611,7 +598,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
               {/* Editable Fields */}
               <div className="space-y-4 pt-4 border-t border-outline-variant/30">
                 <h5 className="text-sm font-bold text-on-surface uppercase tracking-wider">Edit Status &amp; Verification</h5>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold uppercase text-outline">Verification Status</label>
