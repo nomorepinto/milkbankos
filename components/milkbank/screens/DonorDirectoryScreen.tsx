@@ -534,6 +534,15 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
                   <h4 className="text-lg font-bold text-on-surface">{selectedDonor.name}</h4>
                   <div className="text-outline text-xs mt-0.5">ID: {selectedDonor.id}</div>
                   <div className="text-on-surface-variant text-sm mt-1">{selectedDonor.contact}</div>
+                  <div className="mt-2">
+                    <Link
+                      href={`/donor-community-map?donorId=${selectedDonor.id}`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                    >
+                      <Icon name="map" className="text-sm" />
+                      <span>View on Map</span>
+                    </Link>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
                   <div className="bg-surface-container-high px-3 py-1.5 rounded-lg text-center">
