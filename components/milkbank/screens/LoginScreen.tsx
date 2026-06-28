@@ -49,7 +49,7 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
       });
 
       if (authError) {
-        // Fallback for seeded users in the public.users table (for test runs)
+        // Fallback: check seeded users in public.users (for test/dev accounts)
         const { data: dbUser } = await supabase
           .from("users")
           .select("id, role, email")
@@ -65,21 +65,28 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
           return;
         }
 
-        setErrorMessage(authError.message);
+        setErrorMessage(authError.message || "Invalid credentials. Please verify your email and password.");
         setShowError(true);
-        window.setTimeout(() => setShowError(false), 5000);
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("users")
-        .select("role")
-        .eq("auth_user_id", authData.user?.id)
-        .single();
+      // Auth succeeded — look up the role from the users table
+      let role: string | null = null;
+      try {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role")
+          .eq("auth_user_id", authData.user?.id)
+          .single();
+        role = profile?.role ?? null;
+      } catch {
+        // Profile fetch failed — proceed with default role
+      }
 
-      if (profile && profile.role === "donor") {
+      if (role === "donor") {
         router.push("/milk-donation-log");
       } else {
+        // Default: staff / admin / unlinked profile → main dashboard
         router.push("/inventory-lab-results");
       }
     } catch (err: any) {
