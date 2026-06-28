@@ -21,17 +21,12 @@ export function LogisticsSubNav({ activeTab }: LogisticsSubNavProps) {
             <Icon name="explore" className="text-base" />
             <span>Logistics Map</span>
           </Link>
-          <Link
-            href="/onsite-collection-terminal"
-            className={`flex items-center gap-2 border-b-2 py-4 text-sm font-semibold transition-all ${
-              activeTab === "terminal"
-                ? "border-primary text-primary font-bold"
-                : "border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant/50"
-            }`}
-          >
-            <Icon name="screenshot_monitor" className="text-base" />
-            <span>Collection Terminal</span>
-          </Link>
+          {activeTab === "terminal" && (
+            <div className="flex items-center gap-2 border-b-2 py-4 text-sm font-bold border-primary text-primary">
+              <Icon name="screenshot_monitor" className="text-base" />
+              <span>Collection Terminal</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

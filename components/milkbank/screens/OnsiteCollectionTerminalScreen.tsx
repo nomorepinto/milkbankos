@@ -4,219 +4,230 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { LogisticsSubNav } from "@/components/milkbank/layout/LogisticsSubNav";
 import { Icon } from "@/components/milkbank/ui/Icon";
+import { StatCard } from "@/components/milkbank/ui/StatCard";
 import { supabase } from "@/lib/supabaseClient";
-
-export interface SessionLog {
-  id: string;
-  time: string;
-  donorName: string;
-  donorId: string;
-  volumeMl: number;
-  status: "verified" | "fail";
-  statusLabel: string;
-}
-
-export interface Batch {
-  id: string;
-  entries: number;
-  volumeL: number;
-  status: "OPEN" | "SHIPPED";
-  timeLabel?: string;
-}
-
-const defaultDonor = { name: "Sarah J. Miller", id: "9928" };
 
 export interface OnsiteCollectionTerminalScreenProps { }
 
 export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollectionTerminalScreenProps>) {
+  const [batches, setBatches] = useState<any[]>([]);
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [activeHospital, setActiveHospital] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentDonor, setCurrentDonor] = useState(defaultDonor);
-  const [volume, setVolume] = useState("");
-  const [temperature, setTemperature] = useState("");
-  const [expressionTime, setExpressionTime] = useState("");
-  const [milkType, setMilkType] = useState("Standard Mature Milk");
-  const [observations, setObservations] = useState("");
-  const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([]);
-  const [batches, setBatches] = useState<Batch[]>([]);
 
-  // Walk-In Donor Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [walkInName, setWalkInName] = useState("");
-  const [walkInPhone, setWalkInPhone] = useState("");
-  const [walkInDob, setWalkInDob] = useState("");
-  const [walkInInfantAge, setWalkInInfantAge] = useState("");
+  // Stat Card states
+  const [stats, setStats] = useState({
+    totalVolume: "0 ml",
+    batchesToday: "0 Today",
+    avgTemp: "-18.5 °C",
+    activeLocations: "0 Locations",
+  });
 
-  async function loadData() {
-    // 1. Fetch batches
-    const { data: dbBatches } = await supabase
-      .from("terminal_batches")
-      .select("*")
-      .order("created_at", { ascending: false });
+  // Modal States
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addBatchId, setAddBatchId] = useState("");
+  const [addHospitalId, setAddHospitalId] = useState("");
+  const [addVolume, setAddVolume] = useState("");
+  const [addStorage, setAddStorage] = useState("");
+  const [addCollectedAt, setAddCollectedAt] = useState("");
+  const [addExpiry, setAddExpiry] = useState("");
 
-    if (dbBatches) {
-      setBatches(dbBatches.map((b: any) => ({
-        id: b.id,
-        entries: Number(b.entries),
-        volumeL: Number(b.volume_l),
-        status: b.status,
-        timeLabel: b.time_label || undefined
-      })));
+  const loadData = async () => {
+    try {
+      // 1. Fetch hospitals (profiles with type = 'hospital')
+      const { data: hospitalData } = await supabase
+        .from("donor_profiles")
+        .select("id, full_name, display_id")
+        .eq("type", "hospital")
+        .order("full_name");
+
+      let loadedHospitals: any[] = [];
+      if (hospitalData) {
+        setHospitals(hospitalData);
+        loadedHospitals = hospitalData;
+      }
+
+      // Check query params for hospitalId redirection and determine active hospital
+      let selectedHosp: any = null;
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const hospitalIdParam = params.get("hospitalId");
+        if (hospitalIdParam) {
+          selectedHosp = loadedHospitals.find(
+            (h) => h.display_id === hospitalIdParam || h.id === hospitalIdParam
+          ) || null;
+          setActiveHospital(selectedHosp);
+        }
+      }
+
+      // 2. Fetch inventory batches logged specifically for the active hospital
+      if (selectedHosp) {
+        const { data: batchesData } = await supabase
+          .from("inventory_batches")
+          .select("*, donor:donor_profiles!inner(full_name, type, display_id)")
+          .eq("donor_id", selectedHosp.id)
+          .order("collected_at", { ascending: false });
+
+        if (batchesData) {
+          const mapped = batchesData.map((b) => ({
+            batchId: b.batch_id,
+            hospitalName: b.donor?.full_name || "Unknown Hospital",
+            hospitalDisplayId: b.donor?.display_id || "N/A",
+            volumeMl: Number(b.volume_ml),
+            collected: new Date(b.collected_at)
+              .toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+              .replace(",", ""),
+            storage: b.storage_location || "N/A",
+            rawCollectedAt: b.collected_at,
+            hospitalId: b.donor_id,
+          }));
+          setBatches(mapped);
+
+          // 3. Compute stats specifically for this hospital
+          const totalVol = mapped.reduce((sum, b) => sum + b.volumeMl, 0);
+
+          // Count today's collections
+          const todayStr = new Date().toISOString().slice(0, 10);
+          const todayCount = mapped.filter((b) => b.rawCollectedAt.startsWith(todayStr)).length;
+
+          setStats({
+            totalVolume: `${totalVol.toLocaleString()} ml`,
+            batchesToday: `${todayCount} Today`,
+            avgTemp: "-18.5 °C",
+            activeLocations: "1 Location",
+          });
+        }
+      } else {
+        setBatches([]);
+        setStats({
+          totalVolume: "0 ml",
+          batchesToday: "0 Today",
+          avgTemp: "N/A",
+          activeLocations: "0 Locations",
+        });
+      }
+    } catch (err) {
+      console.error("Error loading terminal collection data:", err);
     }
-
-    // 2. Fetch sessions
-    const { data: dbSessions } = await supabase
-      .from("terminal_sessions")
-      .select("*, donor:donor_profiles(full_name, display_id)")
-      .order("session_time", { ascending: false });
-
-    if (dbSessions) {
-      setSessionLogs(dbSessions.map(s => ({
-        id: s.id,
-        time: new Date(s.session_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        donorName: s.donor?.full_name || "Anonymous",
-        donorId: s.donor?.display_id || "N/A",
-        volumeMl: Number(s.volume_ml),
-        status: s.status,
-        statusLabel: s.status_label || "Verified"
-      })));
-    }
-  }
+  };
 
   useEffect(() => {
     loadData();
   }, []);
 
-  // Search donor mapping simulation
-  const handleSearchChange = async (val: string) => {
-    setSearchQuery(val);
-    const lower = val.toLowerCase();
-    if (!lower) {
-      setCurrentDonor(defaultDonor);
+  const openAddModal = async () => {
+    if (!activeHospital) return;
+
+    // Auto-generate Batch ID in the format: MB-YEAR-SEQUENTIAL_NUMBER
+    const currentYear = new Date().getFullYear();
+    const prefix = `MB-${currentYear}-`;
+    try {
+      const { count } = await supabase
+        .from("inventory_batches")
+        .select("batch_id", { count: "exact", head: true })
+        .like("batch_id", `${prefix}%`);
+
+      const nextSeq = (count || 0) + 1;
+      setAddBatchId(`${prefix}${String(nextSeq).padStart(4, "0")}`);
+    } catch (err) {
+      console.error("Error generating batch ID:", err);
+      setAddBatchId(`${prefix}${Math.floor(1000 + Math.random() * 9000)}`);
+    }
+
+    // Default Collected At to local date/time string formatted as YYYY-MM-DDTHH:MM
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+    setAddCollectedAt(localISOTime);
+
+    // Default Expiry Date to 3 months from now (YYYY-MM-DD)
+    const expiryDate = new Date();
+    expiryDate.setMonth(expiryDate.getMonth() + 3);
+    setAddExpiry(expiryDate.toISOString().slice(0, 10));
+
+    // Reset other fields
+    setAddHospitalId(activeHospital.id);
+    setAddVolume("");
+    setAddStorage("");
+
+    setIsAddModalOpen(true);
+  };
+
+  const handleSubmitCollection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addBatchId || !addHospitalId || !addVolume || !addCollectedAt || !addExpiry) {
+      alert("Please fill out all required fields.");
       return;
     }
 
     try {
-      const { data } = await supabase
-        .from("donor_profiles")
-        .select("full_name, display_id")
-        .ilike("full_name", `%${lower}%`)
-        .limit(1);
+      const { error } = await supabase.from("inventory_batches").insert([
+        {
+          batch_id: addBatchId.trim(),
+          donor_id: addHospitalId,
+          volume_ml: Number(addVolume),
+          collected_at: new Date(addCollectedAt).toISOString(),
+          expiry_date: addExpiry,
+          lab_status: "pending",
+          lab_label: "Pending QC",
+          storage_location: addStorage.trim() || null,
+        },
+      ]);
 
-      if (data && data.length > 0) {
-        setCurrentDonor({ name: data[0].full_name, id: data[0].display_id });
-      } else {
-        setCurrentDonor({ name: val, id: "TEMP-" + Math.floor(1000 + Math.random() * 9000) });
-      }
-    } catch (err) {
-      console.error(err);
-      setCurrentDonor({ name: val, id: "TEMP-" + Math.floor(1000 + Math.random() * 9000) });
+      if (error) throw error;
+
+      alert(`Successfully logged batch: ${addBatchId}`);
+      setIsAddModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      alert("Error logging collection entry: " + err.message);
     }
   };
 
-  // Submit new donation entry
-  const handleLogDonation = async () => {
-    if (!volume || isNaN(Number(volume))) {
-      alert("Please enter a valid donation volume.");
-      return;
-    }
+  // Filter batches based on search query
+  const filteredBatches = batches.filter((b) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      b.hospitalName.toLowerCase().includes(query) ||
+      b.batchId.toLowerCase().includes(query) ||
+      b.storage.toLowerCase().includes(query)
+    );
+  });
 
-    const volNum = Number(volume);
-
-    // Add new log
-    const now = new Date();
-
-    let dbDonorId: string | null = null;
-    const { data: dp } = await supabase
-      .from("donor_profiles")
-      .select("id")
-      .eq("display_id", "DON-" + currentDonor.id)
-      .single();
-
-    if (dp) {
-      dbDonorId = dp.id;
-    }
-
-    const newLogId = "LOG-" + (sessionLogs.length + 1).toString().padStart(2, "0");
-    const { error: insErr } = await supabase
-      .from("terminal_sessions")
-      .insert({
-        id: newLogId,
-        donor_id: dbDonorId,
-        volume_ml: volNum,
-        session_time: now.toISOString(),
-        status: "verified",
-        status_label: "Verified"
-      });
-
-    if (insErr) {
-      alert("Error saving log to Supabase: " + insErr.message);
-    }
-
-    // Update active batch stats
-    const openBatch = batches.find(b => b.status === "OPEN");
-    if (openBatch) {
-      await supabase
-        .from("terminal_batches")
-        .update({
-          entries: openBatch.entries + 1,
-          volume_l: Number((openBatch.volumeL + volNum / 1000).toFixed(2))
-        })
-        .eq("id", openBatch.id);
-    }
-
-    // Reset fields & refresh
-    setVolume("");
-    setTemperature("");
-    setExpressionTime("");
-    setObservations("");
-    alert("Donation entry logged successfully!");
-    loadData();
-  };
-
-  // Submit walk-in donor registration
-  const handleSubmitWalkIn = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!walkInName) {
-      alert("Please enter donor full name.");
-      return;
-    }
-    const generatedId = Math.floor(1000 + Math.random() * 9000).toString();
-    setCurrentDonor({ name: walkInName, id: generatedId });
-    setIsModalOpen(false);
-
-    // Reset modal fields
-    setWalkInName("");
-    setWalkInPhone("");
-    setWalkInDob("");
-    setWalkInInfantAge("");
-    alert(`Donor ${walkInName} registered and selected for current session.`);
-  };
-
-  // Initiate new batch
-  const handleInitiateBatch = async () => {
-    const nextNum = batches.length + 1;
-    const batchId = `B-202310-${nextNum.toString().padStart(2, "0")}`;
-
-    const { error: batchErr } = await supabase
-      .from("terminal_batches")
-      .insert({
-        id: batchId,
-        entries: 0,
-        volume_l: 0,
-        status: "OPEN"
-      });
-
-    if (batchErr) {
-      alert("Error initiating new batch: " + batchErr.message);
-      return;
-    }
-
-    alert(`Initiated new batch: ${batchId}`);
-    loadData();
-  };
-
-  // Compute total intake volume in liters
-  const totalVolumeL = (sessionLogs.reduce((acc, log) => acc + log.volumeMl, 0) / 1000).toFixed(1);
+  if (!activeHospital) {
+    return (
+      <AppShell activeSlug="onsite-collection-terminal">
+        <div className="bg-background min-h-screen pb-12">
+          <LogisticsSubNav activeTab="terminal" />
+          <main className="mx-auto max-w-[800px] px-4 py-16 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <Icon name="screenshot_monitor" className="text-3xl" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-on-surface">No Hospital Selected</h2>
+              <p className="text-on-surface-variant text-sm font-medium">
+                Each hospital has its own onsite collection terminal. Please open a terminal for a specific hospital from the Logistics Map.
+              </p>
+            </div>
+            <a
+              href="/collection-point-logistics"
+              className="inline-flex items-center gap-2 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] mx-auto"
+            >
+              <Icon name="explore" />
+              <span>Go to Logistics Map</span>
+            </a>
+          </main>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell activeSlug="onsite-collection-terminal">
@@ -226,467 +237,271 @@ export function OnsiteCollectionTerminalScreen(_props: Readonly<OnsiteCollection
         <main className="mx-auto max-w-[1600px] px-4 py-8 md:px-8 space-y-8">
 
           {/* Header Section */}
-          <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h2 className="text-3xl font-bold text-on-surface flex items-center gap-3">
-                St. Jude Medical Plaza
+                {activeHospital.full_name}
                 <span className="bg-surface-container-high px-3 py-1 rounded-full text-xs font-bold text-on-surface">
-                  ROOM 402
+                  Onsite Collection Terminal
                 </span>
               </h2>
+              <p className="text-sm font-medium text-on-surface-variant mt-1">
+                Field UI utilized by clinicians and staff processing dynamic collection batches on location
+              </p>
             </div>
 
             <div className="flex flex-col items-end">
               <span className="text-xs font-semibold text-on-surface-variant mb-1">Sync Status</span>
               <div className="flex items-center gap-2 bg-secondary/10 text-secondary px-3 py-1 rounded-lg border border-secondary/20">
                 <Icon name="cloud_done" className="text-sm" />
-                <span className="text-xs font-bold">Synchronized</span>
+                <span className="text-xs font-bold">Connected to Central System</span>
               </div>
             </div>
           </div>
 
-          {/* Redesigned Workspace Layout */}
-          <div className="grid grid-cols-12 gap-6 items-start">
+          {/* Stats Cards Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <StatCard
+              label="Total Volume Collected"
+              value={stats.totalVolume}
+              icon="water_drop"
+              subtext="This Location"
+              accent="primary"
+            />
+            <StatCard
+              label="Collections Today"
+              value={stats.batchesToday}
+              icon="inventory_2"
+              subtext="Pending Sync"
+              accent="secondary"
+            />
+            <StatCard
+              label="Average Storage Temp"
+              value={stats.avgTemp}
+              icon="thermostat"
+              subtext="Safe Range"
+              accent="neutral"
+            />
+          </div>
 
-            {/* Left Sidebar: Batch Info & Metrics */}
-            <div className="col-span-12 lg:col-span-4 space-y-6">
+          {/* Control Bar & Table Container */}
+          <div className="bg-white rounded-2xl border border-outline-variant/35 shadow-sm overflow-hidden">
+            {/* Filter and Actions Row */}
+            <div className="p-6 border-b border-outline-variant/20 flex flex-col md:flex-row gap-4 items-center justify-between bg-surface-container-lowest">
+              <div className="relative w-full md:max-w-md">
+                <Icon
+                  name="search"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg"
+                />
+                <input
+                  type="text"
+                  placeholder="Search by location, batch, or storage..."
+                  className="w-full pl-12 pr-4 py-2.5 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold bg-white"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
 
-              {/* Batch Status Panel */}
-              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-base font-bold text-on-surface">Active Collection Batch</h3>
-                  <Icon name="inventory_2" className="text-primary" />
-                </div>
-
-                <div className="space-y-4">
-                  {batches.map((batch) => {
-                    const isOpen = batch.status === "OPEN";
-                    return (
-                      <div
-                        key={batch.id}
-                        className={`p-4 rounded-lg border flex items-start gap-4 ${isOpen
-                          ? "bg-surface-container-low border-outline-variant/40 animate-pulse-slow"
-                          : "border-outline-variant/20 opacity-70"
-                          }`}
-                      >
-                        <div className={`w-1.5 h-12 rounded-full ${isOpen ? "bg-secondary" : "bg-outline"}`} />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-on-surface">{batch.id}</span>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isOpen ? "bg-secondary-container/20 text-secondary" : "bg-surface-container text-on-surface-variant"
-                              }`}>
-                              {batch.status}
-                            </span>
-                          </div>
-
-                          <p className="text-xs text-on-surface-variant mt-1 font-semibold">
-                            {batch.entries} Entries • {batch.volumeL}L Total
-                          </p>
-
-                          {isOpen ? (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                className="text-[10px] font-bold text-primary uppercase hover:underline cursor-pointer"
-                              >
-                                View manifest
-                              </button>
-                              <button
-                                type="button"
-                                className="text-[10px] font-bold text-on-surface-variant uppercase hover:underline cursor-pointer"
-                              >
-                                Print tags
-                              </button>
-                            </div>
-                          ) : (
-                            <p className="text-[10px] text-outline mt-2 italic font-semibold">{batch.timeLabel}</p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
+              <div className="flex gap-3 w-full md:w-auto">
                 <button
-                  onClick={handleInitiateBatch}
                   type="button"
-                  className="w-full mt-6 py-3 border-2 border-dashed border-outline-variant text-on-surface-variant rounded-xl font-bold text-sm hover:bg-surface-container transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={openAddModal}
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] cursor-pointer text-sm"
                 >
-                  <Icon name="add_box" />
-                  <span>Initiate New Batch</span>
+                  <Icon name="add_circle" className="text-lg" />
+                  <span>Log Collection</span>
                 </button>
               </div>
-
-              {/* Real-time Metrics Card */}
-              <div className="bg-primary-dark rounded-xl p-6 text-white shadow-xl relative overflow-hidden">
-                <div className="relative z-10">
-                  <h3 className="text-xs font-bold text-primary-fixed/60 uppercase mb-4 tracking-wider">
-                    Current Session Metrics
-                  </h3>
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex justify-between items-end mb-2">
-                        <span className="text-3xl font-bold">12/20</span>
-                        <span className="text-xs text-primary-fixed/60 font-semibold">Bottles Remaining</span>
-                      </div>
-                      <div className="w-full bg-primary-fixed/20 h-2 rounded-full overflow-hidden">
-                        <div className="bg-primary-container h-full w-[60%] rounded-full shadow-[0_0_10px_rgba(171,138,255,0.5)]"></div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 font-bold">
-                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <span className="text-[10px] text-primary-fixed/60 block uppercase">Avg. Temp</span>
-                        <span className="text-xl font-bold">-18.4°C</span>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <span className="text-[10px] text-primary-fixed/60 block uppercase">Staff Onsite</span>
-                        <span className="text-xl font-bold">03</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
-                  <Icon name="analytics" className="text-[160px]" />
-                </div>
-              </div>
-
             </div>
 
-            {/* Right Column: Workflow Steps & Logs */}
-            <div className="col-span-12 lg:col-span-8 space-y-6">
-
-              {/* Step 1: Donor Identification Kiosk */}
-              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">1</span>
-                  <h3 className="text-base font-bold text-on-surface">Identify &amp; Select Donor</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="relative group md:col-span-2">
-                    <Icon name="person_search" className="absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" />
-                    <input
-                      className="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm font-semibold text-on-surface"
-                      placeholder="Search Donor by Name, ID, or Phone..."
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => handleSearchChange(e.target.value)}
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center justify-center gap-2 bg-primary-dark text-white font-bold py-3 px-4 rounded-xl hover:bg-black transition-colors shadow-sm active:scale-[0.98] cursor-pointer text-sm"
-                  >
-                    <Icon name="person_add" className="text-sm" />
-                    <span>Register Walk-In</span>
-                  </button>
-                </div>
-
-                {currentDonor && (
-                  <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl animate-in fade-in duration-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                        <Icon name="account_circle" className="text-2xl" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-primary uppercase tracking-wider">Active Donor Profile</p>
-                        <p className="text-sm font-bold text-on-surface">{currentDonor.name} (ID: {currentDonor.id})</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentDonor(defaultDonor)}
-                      className="text-xs font-bold text-on-surface-variant hover:text-error transition-colors px-3 py-1 border border-outline rounded-lg cursor-pointer hover:bg-error-container/20"
-                    >
-                      Clear Selection
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Step 2: Intake Details Form */}
-              <div className="bg-white rounded-xl border border-outline-variant/35 p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">2</span>
-                    <h3 className="text-base font-bold text-on-surface">Record Donation Details</h3>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold text-on-surface-variant uppercase block">Target Batch</span>
-                    <span className="text-xs font-bold text-secondary uppercase">
-                      {batches.find(b => b.status === "OPEN")?.id || "None Open"}
-                    </span>
-                  </div>
-                </div>
-
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-2">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Donation Volume (mL)
-                    </label>
-                    <div className="relative">
-                      <input
-                        className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
-                        placeholder="0.00"
-                        type="number"
-                        value={volume}
-                        onChange={(e) => setVolume(e.target.value)}
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-outline text-xs font-bold">ML</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Storage Temperature (°C)
-                    </label>
-                    <div className="relative">
-                      <input
-                        className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
-                        placeholder="-18.0"
-                        step="0.1"
-                        type="number"
-                        value={temperature}
-                        onChange={(e) => setTemperature(e.target.value)}
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-outline text-xs font-bold">°C</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Date &amp; Time of Expressing
-                    </label>
-                    <input
-                      className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold"
-                      type="datetime-local"
-                      value={expressionTime}
-                      onChange={(e) => setExpressionTime(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Milk Type / Status
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold bg-white"
-                      value={milkType}
-                      onChange={(e) => setMilkType(e.target.value)}
-                    >
-                      <option>Standard Mature Milk</option>
-                      <option>Colostrum</option>
-                      <option>Transitional Milk</option>
-                      <option>Preterm Donor Milk</option>
-                    </select>
-                  </div>
-
-                  <div className="col-span-full space-y-2">
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Clinical Observations &amp; Notes
-                    </label>
-                    <textarea
-                      className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold"
-                      placeholder="Enter any significant notes about appearance, aroma, or collection process..."
-                      rows={3}
-                      value={observations}
-                      onChange={(e) => setObservations(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="col-span-full pt-4 flex gap-4">
-                    <button
-                      onClick={handleLogDonation}
-                      type="button"
-                      disabled={!volume || !temperature || !expressionTime}
-                      className="flex-1 py-4 bg-primary text-white font-bold rounded-xl shadow-md hover:bg-primary/95 transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <Icon name="save" />
-                      <span>Log Donation Entry</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setVolume("");
-                        setTemperature("");
-                        setExpressionTime("");
-                        setObservations("");
-                      }}
-                      className="px-6 py-4 border border-outline text-on-surface-variant font-bold rounded-xl hover:bg-surface-container transition-all cursor-pointer"
-                    >
-                      Reset
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Step 3: Session Logs */}
-              <div className="bg-white rounded-xl border border-outline-variant/35 overflow-hidden shadow-sm">
-                <div className="px-6 py-4 border-b border-outline-variant/25 bg-surface-container-low flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">3</span>
-                    <h3 className="text-base font-bold text-on-surface">Today&apos;s Local Session Log</h3>
-                  </div>
-                  <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Total: {totalVolumeL} Liters
-                  </span>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-surface-container-low">
-                      <tr>
-                        <th className="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase">Time</th>
-                        <th className="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase">Donor</th>
-                        <th className="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase">Volume</th>
-                        <th className="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase">Status</th>
-                        <th className="px-6 py-3"></th>
+            {/* Collection Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-surface-container-low">
+                  <tr className="border-b border-outline-variant/20">
+                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Batch ID
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Volume (mL)
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Storage Location
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Collected At
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/15 font-semibold text-sm">
+                  {filteredBatches.length > 0 ? (
+                    filteredBatches.map((batch, index) => (
+                      <tr
+                        key={batch.batchId}
+                        className={`hover:bg-primary/5 transition-colors ${index % 2 === 1 ? "bg-surface-container-low/10" : ""
+                          }`}
+                      >
+                        <td className="px-6 py-5">
+                          <span className="font-mono bg-surface-container px-2.5 py-1 rounded text-xs text-on-surface font-bold">
+                            {batch.batchId}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 font-bold text-on-surface">
+                          {batch.volumeMl.toLocaleString()} mL
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-1.5 text-on-surface-variant">
+                            <Icon name="kitchen" className="text-sm text-outline" />
+                            <span>{batch.storage}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-on-surface-variant font-medium">
+                          {batch.collected}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/20 font-medium text-sm">
-                      {sessionLogs.map((log, index) => (
-                        <tr
-                          key={log.id}
-                          className={`hover:bg-primary/5 transition-colors ${index % 2 === 1 ? "bg-surface-container-low/20" : ""
-                            }`}
-                        >
-                          <td className="px-6 py-4 font-semibold text-on-surface-variant">{log.time}</td>
-                          <td className="px-6 py-4 font-bold text-on-surface">
-                            <div>
-                              <span>{log.donorName}</span>
-                              <span className="text-outline text-xs block font-semibold">{log.donorId}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 font-bold text-on-surface">{log.volumeMl} mL</td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${log.status === "verified"
-                              ? "bg-secondary-container/20 text-secondary"
-                              : "bg-tertiary-container/20 text-tertiary"
-                              }`}>
-                              {log.statusLabel}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              type="button"
-                              className="p-1 text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
-                              onClick={() => alert(`Action triggered for ${log.id}`)}
-                            >
-                              <Icon name={log.status === "verified" ? "print" : "edit"} className="text-xl" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-outline font-medium">
+                        No collection records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-
           </div>
         </main>
 
-        {/* Walk-In Donor Registration Modal Dialog */}
-        {isModalOpen && (
+        {/* Log Collection Modal */}
+        {isAddModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
             <div
               className="absolute inset-0 bg-on-background/45 backdrop-blur-sm"
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => setIsAddModalOpen(false)}
             />
 
-            <div className="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+            <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
               <div className="bg-primary px-8 py-6 text-white flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-bold">Register Walk-In Donor</h2>
+                  <h2 className="text-xl font-bold">Log New Collection</h2>
                   <p className="text-primary-fixed/80 text-xs mt-1 font-semibold">
-                    New donor initial screening and enrollment
+                    Register a new milk batch in inventory from location
                   </p>
                 </div>
                 <button
                   type="button"
                   className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => setIsAddModalOpen(false)}
                 >
                   <Icon name="close" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitWalkIn} className="p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <form onSubmit={handleSubmitCollection} className="p-8 space-y-5">
+                <div className="space-y-4">
+
+                  {/* Batch ID (Read-only) */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Full Legal Name
+                      Batch ID *
                     </label>
                     <input
-                      className="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold"
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant font-semibold text-sm outline-none cursor-not-allowed"
                       type="text"
+                      readOnly
                       required
-                      value={walkInName}
-                      onChange={(e) => setWalkInName(e.target.value)}
+                      value={addBatchId}
                     />
                   </div>
 
+                  {/* Location / Hospital (Read-only) */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Primary Phone
+                      Location / Hospital
                     </label>
                     <input
-                      className="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold"
-                      type="tel"
-                      value={walkInPhone}
-                      onChange={(e) => setWalkInPhone(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant font-semibold text-sm outline-none cursor-not-allowed"
+                      type="text"
+                      readOnly
+                      required
+                      value={`${activeHospital.full_name} (${activeHospital.display_id})`}
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Date of Birth
-                    </label>
-                    <input
-                      className="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold"
-                      type="date"
-                      value={walkInDob}
-                      onChange={(e) => setWalkInDob(e.target.value)}
-                    />
+                  {/* Volume and Storage */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                        Volume (mL) *
+                      </label>
+                      <input
+                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white text-on-surface"
+                        type="number"
+                        required
+                        placeholder="e.g. 450"
+                        value={addVolume}
+                        onChange={(e) => setAddVolume(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                        Storage Location
+                      </label>
+                      <input
+                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white text-on-surface"
+                        type="text"
+                        placeholder="e.g. Freezer A-12"
+                        value={addStorage}
+                        onChange={(e) => setAddStorage(e.target.value)}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Infant Age (Months)
-                    </label>
-                    <input
-                      className="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-semibold"
-                      type="number"
-                      value={walkInInfantAge}
-                      onChange={(e) => setWalkInInfantAge(e.target.value)}
-                    />
+                  {/* Collected At and Expiry */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                        Collected At *
+                      </label>
+                      <input
+                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-xs bg-white text-on-surface"
+                        type="datetime-local"
+                        required
+                        value={addCollectedAt}
+                        onChange={(e) => setAddCollectedAt(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                        Expiry Date *
+                      </label>
+                      <input
+                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white text-on-surface"
+                        type="date"
+                        required
+                        value={addExpiry}
+                        onChange={(e) => setAddExpiry(e.target.value)}
+                      />
+                    </div>
                   </div>
+
                 </div>
 
-                <div className="flex items-center gap-3 p-4 bg-surface-container rounded-xl border border-outline-variant/30">
-                  <Icon name="info" className="text-secondary" />
-                  <p className="text-xs text-on-surface-variant font-semibold">
-                    By registering, you confirm that the preliminary health screening questionnaire has been completed and verified by onsite staff.
-                  </p>
-                </div>
-
+                {/* Submit / Cancel Actions Only */}
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
-                    disabled={!walkInName.trim() || !walkInPhone.trim() || !walkInDob || !walkInInfantAge}
-                    className="flex-1 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/95 transition-all shadow-md active:scale-[0.98] cursor-pointer text-sm"
                   >
-                    Submit Registration
+                    Submit
                   </button>
                   <button
                     type="button"
-                    className="flex-1 py-4 border border-outline text-on-surface-variant font-bold rounded-xl hover:bg-surface-container transition-all cursor-pointer"
-                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-3 border border-outline text-on-surface-variant font-bold rounded-xl hover:bg-surface-container transition-all cursor-pointer text-sm"
+                    onClick={() => setIsAddModalOpen(false)}
                   >
                     Cancel
                   </button>

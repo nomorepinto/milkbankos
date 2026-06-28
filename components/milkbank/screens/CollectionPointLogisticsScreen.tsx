@@ -450,17 +450,15 @@ export function CollectionPointLogisticsScreen(_props: Readonly<CollectionPointL
                           <p className="text-xs text-on-surface-variant leading-snug">
                             Primary reception center. Operational 24/7 for lab analysis.
                           </p>
-                          {point.id === "FC-01" && (
-                            <div className="mt-3 pt-2 border-t border-outline-variant/30 flex justify-end">
-                              <Link
-                                href="/onsite-collection-terminal"
-                                className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline cursor-pointer"
-                              >
-                                <span>Open Collection Terminal</span>
-                                <Icon name="arrow_forward" className="text-xs" />
-                              </Link>
-                            </div>
-                          )}
+                          <div className="mt-3 pt-2 border-t border-outline-variant/30 flex justify-end">
+                            <Link
+                              href={`/onsite-collection-terminal?hospitalId=${point.id}`}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline cursor-pointer"
+                            >
+                              <span>Open Collection Terminal</span>
+                              <Icon name="arrow_forward" className="text-xs" />
+                            </Link>
+                          </div>
                         </div>
                       ) : (
                         <>
