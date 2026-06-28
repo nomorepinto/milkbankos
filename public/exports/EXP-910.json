@@ -1,0 +1,67 @@
+[
+  {
+    "id": "DISP-4421",
+    "beneficiary_id": "b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1",
+    "batch_id": "MB-2024-0892",
+    "ward": "NICU-3A",
+    "volume_ml": 120,
+    "dispensed_date": "2026-06-17",
+    "priority": "standard",
+    "status": "pending",
+    "status_label": "Scheduled",
+    "dispensed_by": "11111111-1111-1111-1111-111111111111",
+    "created_at": "2026-06-19T11:21:12.35342+00:00"
+  },
+  {
+    "id": "DISP-4420",
+    "beneficiary_id": "b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2",
+    "batch_id": "MB-2024-0891",
+    "ward": "NICU-2B",
+    "volume_ml": 85,
+    "dispensed_date": "2026-06-17",
+    "priority": "standard",
+    "status": "pending",
+    "status_label": "Scheduled",
+    "dispensed_by": "11111111-1111-1111-1111-111111111111",
+    "created_at": "2026-06-19T11:21:12.35342+00:00"
+  },
+  {
+    "id": "DISP-4419",
+    "beneficiary_id": "b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3",
+    "batch_id": "MB-2024-0890",
+    "ward": "Pediatrics-4",
+    "volume_ml": 200,
+    "dispensed_date": "2026-06-16",
+    "priority": "standard",
+    "status": "verified",
+    "status_label": "Dispensed",
+    "dispensed_by": "11111111-1111-1111-1111-111111111111",
+    "created_at": "2026-06-19T11:21:12.35342+00:00"
+  },
+  {
+    "id": "DISP-6839",
+    "beneficiary_id": "b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3",
+    "batch_id": null,
+    "ward": "NICU-67",
+    "volume_ml": 150,
+    "dispensed_date": "2026-06-25",
+    "priority": "standard",
+    "status": "pending",
+    "status_label": "Scheduled",
+    "dispensed_by": null,
+    "created_at": "2026-06-20T02:37:13.721054+00:00"
+  },
+  {
+    "id": "DISP-3497",
+    "beneficiary_id": "b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3",
+    "batch_id": null,
+    "ward": "67",
+    "volume_ml": 1000,
+    "dispensed_date": "2026-06-28",
+    "priority": "critical",
+    "status": "verified",
+    "status_label": "Dispensed",
+    "dispensed_by": null,
+    "created_at": "2026-06-28T14:29:48.669677+00:00"
+  }
+]
