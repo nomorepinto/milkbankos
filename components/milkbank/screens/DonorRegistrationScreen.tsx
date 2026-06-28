@@ -24,6 +24,16 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("donorpassword123");
+
+  // Location Form State
+  const [address, setAddress] = useState("");
+  const [region, setRegion] = useState("");
+  const [area, setArea] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodingError, setGeocodingError] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
   const [healthChecks, setHealthChecks] = useState([false, false, false]);
@@ -32,9 +42,55 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
     fullName.trim() !== "" &&
     dob !== "" &&
     phone.trim() !== "" &&
-    email.trim() !== "";
+    email.trim() !== "" &&
+    address.trim() !== "" &&
+    area.trim() !== "" &&
+    region.trim() !== "";
 
   const isStep2Complete = healthChecks.every((val) => val === true);
+
+  const handleLocateAddress = async () => {
+    if (!address.trim()) {
+      setGeocodingError("Please enter an address first.");
+      return;
+    }
+    setIsGeocoding(true);
+    setGeocodingError("");
+    try {
+      const res = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setGeocodingError(data.error || "Geocoding failed.");
+        setLatitude(null);
+        setLongitude(null);
+      } else {
+        setLatitude(data.lat);
+        setLongitude(data.lng);
+        const components = data.addressComponents || [];
+        
+        let foundArea = "";
+        let foundRegion = "";
+        
+        for (const comp of components) {
+          if (comp.types.includes("neighborhood") || comp.types.includes("sublocality") || comp.types.includes("locality")) {
+            foundArea = comp.long_name;
+          }
+          if (comp.types.includes("administrative_area_level_1")) {
+            foundRegion = comp.long_name;
+          }
+        }
+        
+        if (foundArea && !area) setArea(foundArea);
+        if (foundRegion && !region) setRegion(foundRegion);
+      }
+    } catch (err: any) {
+      setGeocodingError(err.message || "An error occurred while geocoding.");
+      setLatitude(null);
+      setLongitude(null);
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
 
   const handleSubmitRegistration = async () => {
     setIsLoading(true);
@@ -68,10 +124,10 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
           contact_phone: phone,
           donation_cycles: 0,
           verification_note: "Pending Re-cert",
-          region: "Central Valley",
-          area: "Castro",
-          latitude: 37.7609,
-          longitude: -122.4350
+          region: region,
+          area: area,
+          latitude: latitude,
+          longitude: longitude
         });
 
       if (profileErr) {
@@ -173,6 +229,67 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
+
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Address</label>
+                    <div className="flex gap-2">
+                      <input
+                        className="flex-1 rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                        placeholder="Enter street address"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleLocateAddress}
+                        disabled={isGeocoding}
+                        className="rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                      >
+                        {isGeocoding ? "Locating..." : "Locate"}
+                      </button>
+                    </div>
+                    {geocodingError && (
+                      <p className="text-xs text-red-500 mt-1">{geocodingError}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Area</label>
+                    <input
+                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                      placeholder="e.g. Castro"
+                      value={area}
+                      onChange={(e) => setArea(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-on-surface-variant">Region</label>
+                    <input
+                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                      placeholder="e.g. Northern California"
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                    />
+                  </div>
+
+                  {latitude !== null && longitude !== null && (
+                    <div className="space-y-1 sm:col-span-2 mt-2">
+                      <label className="text-xs font-semibold uppercase text-on-surface-variant">Location Verification</label>
+                      <div className="overflow-hidden rounded-lg border border-outline-variant">
+                        <iframe
+                          src={`https://maps.google.com/maps?q=${latitude},${longitude}&z=15&output=embed`}
+                          width="100%"
+                          height="250"
+                          style={{ border: 0 }}
+                          allowFullScreen
+                        />
+                      </div>
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        Coordinates found: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </>
             ) : null}

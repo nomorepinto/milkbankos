@@ -19,6 +19,12 @@
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "9e1c8b3103f92fa8092568a44fe64858de7c5c9dc65ce4bea8f168080e889cfd"
     },
+    "google-maps-api": {
+      "source": "tivojn/google-maps-api-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "a067239e29730b2d0d52c148a5e50cb876b911801bba500918ee16f00f19c161"
+    },
     "react:components": {
       "source": "google-labs-code/stitch-skills",
       "sourceType": "github",
