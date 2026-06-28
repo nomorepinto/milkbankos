@@ -117,6 +117,42 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   const [editStatus, setEditStatus] = useState("pending");
   const [editLabel, setEditLabel] = useState("Pending QC");
 
+  const [deletingBatch, setDeletingBatch] = useState<any | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStatuses, selectedStorages, minVolume, maxVolume]);
+
+  const openDeleteModal = (batch: any) => {
+    setDeletingBatch(batch);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteBatch = async () => {
+    if (!deletingBatch) return;
+
+    try {
+      const { error } = await supabase
+        .from("inventory_batches")
+        .delete()
+        .eq("batch_id", deletingBatch.batchId);
+
+      if (error) throw error;
+
+      alert(`Success! Deleted batch: ${deletingBatch.batchId}`);
+      setIsDeleteModalOpen(false);
+      setDeletingBatch(null);
+      loadData();
+    } catch (err: any) {
+      alert("Error deleting batch: " + err.message);
+    }
+  };
+
   const [donors, setDonors] = useState<any[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addBatchId, setAddBatchId] = useState("");
@@ -256,6 +292,12 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
     return true;
   });
 
+  const totalPages = Math.ceil(filteredBatches.length / itemsPerPage) || 1;
+  const paginatedBatches = filteredBatches.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <AppShell activeSlug="inventory-lab-results">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
@@ -300,7 +342,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                 className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:brightness-95 active:scale-[0.98] transition-all"
               >
                 <Icon name="add" />
-                Add Batch
+                New Entry
               </button>
               <button
                 type="button"
@@ -482,7 +524,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                       </td>
                     </tr>
                   ) : (
-                    filteredBatches.map((batch, index) => (
+                    paginatedBatches.map((batch, index) => (
                       <tr
                         key={batch.batchId}
                         className={
@@ -507,7 +549,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                           </select>
                         </td>
                         <td className="px-4 py-3">{batch.storage}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 flex gap-2">
                           <button
                             type="button"
                             onClick={() => openEditModal(batch)}
@@ -516,6 +558,14 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                             <Icon name="edit" className="text-xs" />
                             Edit
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => openDeleteModal(batch)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-error text-error text-xs font-bold hover:bg-error-container/10 cursor-pointer active:scale-95 transition-all"
+                          >
+                            <Icon name="delete" className="text-xs" />
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -523,6 +573,49 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-between border-t border-outline-variant/30 pt-4 px-4 bg-surface-container-low rounded-b-xl pb-4">
+                <span className="text-xs font-semibold text-on-surface-variant">
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredBatches.length)} of {filteredBatches.length} entries
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="p-1 rounded hover:bg-surface-container-high text-on-surface disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                  >
+                    <Icon name="chevron_left" />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-7 w-7 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        currentPage === page
+                          ? "bg-primary text-white"
+                          : "hover:bg-surface-container-high text-on-surface"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="p-1 rounded hover:bg-surface-container-high text-on-surface disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                  >
+                    <Icon name="chevron_right" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -793,6 +886,63 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isDeleteModalOpen && deletingBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div
+            className="absolute inset-0 bg-on-background/45 backdrop-blur-sm"
+            onClick={() => setIsDeleteModalOpen(false)}
+          />
+
+          <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+            <div className="bg-error px-8 py-6 text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Confirm Deletion</h2>
+                <p className="text-error-container text-xs mt-1 font-semibold">
+                  This action cannot be undone.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white"
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-4">
+              <p className="text-sm text-on-surface-variant font-semibold">
+                Are you sure you want to delete the following batch?
+              </p>
+              
+              <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/30 space-y-2 text-sm font-semibold">
+                <div><span className="text-outline">Batch ID:</span> <span className="text-on-surface">{deletingBatch.batchId}</span></div>
+                <div><span className="text-outline">Donor:</span> <span className="text-on-surface">{deletingBatch.donor}</span></div>
+                <div><span className="text-outline">Volume:</span> <span className="text-on-surface">{deletingBatch.volumeMl} ml</span></div>
+                <div><span className="text-outline">Storage:</span> <span className="text-on-surface">{deletingBatch.storage}</span></div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={handleDeleteBatch}
+                  className="flex-1 py-3 bg-error text-white font-bold rounded-xl hover:bg-error/95 transition-all shadow-md active:scale-[0.98] cursor-pointer"
+                >
+                  Delete Entry
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 py-3 border border-outline text-on-surface-variant font-bold rounded-xl hover:bg-surface-container transition-all cursor-pointer"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
