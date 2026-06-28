@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { supabase } from "@/lib/supabaseClient";
+import { APP_NAME } from "@/lib/config";
 
 const donorRegistrationSteps = [
   "Personal Profile",
@@ -160,7 +161,7 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary-container">
               <Icon name="volunteer_activism" className="text-2xl text-white" filled />
             </div>
-            <h1 className="text-xl font-semibold text-white">MilkBankMS</h1>
+            <h1 className="text-xl font-semibold text-white">{APP_NAME}</h1>
             <p className="text-sm text-white/70">Donor Registration Portal</p>
           </div>
 

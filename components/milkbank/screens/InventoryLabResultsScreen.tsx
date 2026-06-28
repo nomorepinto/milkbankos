@@ -6,6 +6,7 @@ import { Icon } from "@/components/milkbank/ui/Icon";
 import { StatCard } from "@/components/milkbank/ui/StatCard";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
 import { supabase } from "@/lib/supabaseClient";
+import { InventoryHistoryTable } from "@/components/milkbank/ui/InventoryHistoryTable";
 
 export interface InventoryLabResultsScreenProps { }
 
@@ -19,6 +20,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedStorages, setSelectedStorages] = useState<string[]>([]);
   const [minVolume, setMinVolume] = useState<string>("");
@@ -27,9 +29,12 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   const loadData = async () => {
     try {
       const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
+      const { data: currentVolData } = await supabase.from("view_current_volume").select("*").single();
+      const currentVol = currentVolData ? Number(currentVolData.current_volume) : 0;
+
       if (statsData) {
         setStats({
-          totalVolume: `${Number(statsData.total_volume_ml).toLocaleString()} ml`,
+          totalVolume: `${currentVol.toLocaleString()} ml`,
           batchesToday: `${statsData.batches_today} Today`,
           passRate: statsData.pass_rate_pct != null ? `${statsData.pass_rate_pct}%` : "0%",
           freezerTemp: "-21.4 °C", // static fallback temp
@@ -71,7 +76,12 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   };
 
   useEffect(() => {
-    loadData();
+    async function init() {
+      setIsLoadingData(true);
+      await loadData();
+      setIsLoadingData(false);
+    }
+    init();
   }, []);
 
   const handleStatusChange = async (batchId: string, newStatus: string) => {
@@ -96,9 +106,12 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
 
       // Reload stats
       const { data: statsData } = await supabase.from("view_inventory_stats").select("*").single();
+      const { data: currentVolData } = await supabase.from("view_current_volume").select("*").single();
+      const currentVol = currentVolData ? Number(currentVolData.current_volume) : 0;
+
       if (statsData) {
         setStats({
-          totalVolume: `${Number(statsData.total_volume_ml).toLocaleString()} ml`,
+          totalVolume: `${currentVol.toLocaleString()} ml`,
           batchesToday: `${statsData.batches_today} Today`,
           passRate: statsData.pass_rate_pct != null ? `${statsData.pass_rate_pct}%` : "0%",
           freezerTemp: "-21.4 °C",
@@ -333,8 +346,12 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
             />
           </div>
 
+          <div className="mb-8">
+            <InventoryHistoryTable />
+          </div>
+
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold text-on-surface">Active Batches</h3>
+            <h3 className="text-lg font-semibold text-on-surface">Current Donations</h3>
             <div className="flex gap-2 relative">
               <button
                 type="button"
@@ -348,8 +365,8 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
                 className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors cursor-pointer ${isFilterOpen || selectedStatuses.length > 0 || selectedStorages.length > 0 || minVolume || maxVolume
-                    ? "bg-primary-container/10 border-primary text-primary"
-                    : "border-outline-variant hover:bg-surface-container-low text-on-surface"
+                  ? "bg-primary-container/10 border-primary text-primary"
+                  : "border-outline-variant hover:bg-surface-container-low text-on-surface"
                   }`}
               >
                 <Icon name="filter_list" />
@@ -396,8 +413,8 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                                 }
                               }}
                               className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${isSelected
-                                  ? "bg-primary-container text-white border-primary-container"
-                                  : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
+                                ? "bg-primary-container text-white border-primary-container"
+                                : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
                                 }`}
                             >
                               {status.label}
@@ -429,8 +446,8 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                                 }
                               }}
                               className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${isSelected
-                                  ? "bg-secondary text-white border-secondary"
-                                  : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
+                                ? "bg-secondary text-white border-secondary"
+                                : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
                                 }`}
                             >
                               {storage.label}
@@ -491,132 +508,137 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
               )}
             </div>
           </div>
-
-          <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-left text-sm">
-                <thead className="border-b border-outline-variant/30 bg-surface-container-low">
-                  <tr>
-                    {[
-                      "Batch ID",
-                      "Donor",
-                      "Volume",
-                      "Collected",
-                      "Expiry",
-                      "Lab Status",
-                      "Storage",
-                      "Actions"
-                    ].map((header) => (
-                      <th
-                        key={header}
-                        className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-on-surface"
-                      >
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredBatches.length === 0 ? (
+          {isLoadingData ? (
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-12 flex flex-col items-center justify-center space-y-4 shadow-sm">
+              <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <p className="text-sm font-semibold text-outline animate-pulse">Loading inventory batches...</p>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[900px] text-left text-sm">
+                  <thead className="border-b border-outline-variant/30 bg-surface-container-low">
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-sm font-semibold text-on-surface-variant">
-                        No batches match the selected filters.
-                      </td>
+                      {[
+                        "Batch ID",
+                        "Donor",
+                        "Volume",
+                        "Collected",
+                        "Expiry",
+                        "Lab Status",
+                        "Storage",
+                        "Actions"
+                      ].map((header) => (
+                        <th
+                          key={header}
+                          className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-on-surface"
+                        >
+                          {header}
+                        </th>
+                      ))}
                     </tr>
-                  ) : (
-                    paginatedBatches.map((batch, index) => (
-                      <tr
-                        key={batch.batchId}
-                        className={
-                          index % 2 === 0 ? "bg-surface-container-lowest" : "bg-surface-container-low/50"
-                        }
-                      >
-                        <td className="px-4 py-3 font-medium text-primary">{batch.batchId}</td>
-                        <td className="px-4 py-3">{batch.donor}</td>
-                        <td className="px-4 py-3 tabular-nums">{batch.volumeMl} ml</td>
-                        <td className="px-4 py-3 text-on-surface-variant">{batch.collected}</td>
-                        <td className="px-4 py-3 text-on-surface-variant">{batch.expiry}</td>
-                        <td className="px-4 py-3">
-                          <select
-                            value={batch.labStatus}
-                            onChange={(e) => handleStatusChange(batch.batchId, e.target.value)}
-                            className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
-                          >
-                            <option value="pending">Pending QC</option>
-                            <option value="verified">Verified</option>
-                            <option value="fail">Failed</option>
-                            <option value="neutral">Neutral</option>
-                          </select>
-                        </td>
-                        <td className="px-4 py-3">{batch.storage}</td>
-                        <td className="px-4 py-3 flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(batch)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-bold hover:bg-primary/5 cursor-pointer active:scale-95 transition-all"
-                          >
-                            <Icon name="edit" className="text-xs" />
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => openDeleteModal(batch)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-error text-error text-xs font-bold hover:bg-error-container/10 cursor-pointer active:scale-95 transition-all"
-                          >
-                            <Icon name="delete" className="text-xs" />
-                            Delete
-                          </button>
+                  </thead>
+                  <tbody>
+                    {filteredBatches.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-sm font-semibold text-on-surface-variant">
+                          No batches match the selected filters.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      paginatedBatches.map((batch, index) => (
+                        <tr
+                          key={batch.batchId}
+                          className={
+                            index % 2 === 0 ? "bg-surface-container-lowest" : "bg-surface-container-low/50"
+                          }
+                        >
+                          <td className="px-4 py-3 font-medium text-primary">{batch.batchId}</td>
+                          <td className="px-4 py-3">{batch.donor}</td>
+                          <td className="px-4 py-3 tabular-nums">{batch.volumeMl} ml</td>
+                          <td className="px-4 py-3 text-on-surface-variant">{batch.collected}</td>
+                          <td className="px-4 py-3 text-on-surface-variant">{batch.expiry}</td>
+                          <td className="px-4 py-3">
+                            <select
+                              value={batch.labStatus}
+                              onChange={(e) => handleStatusChange(batch.batchId, e.target.value)}
+                              className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
+                            >
+                              <option value="pending">Pending QC</option>
+                              <option value="verified">Verified</option>
+                              <option value="fail">Failed</option>
+                              <option value="neutral">Neutral</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-on-surface-variant">{batch.storage}</td>
+                          <td className="px-4 py-3 flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(batch)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-bold hover:bg-primary/5 cursor-pointer active:scale-95 transition-all"
+                            >
+                              <Icon name="edit" className="text-xs" />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openDeleteModal(batch)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-error text-error text-xs font-bold hover:bg-error-container/10 cursor-pointer active:scale-95 transition-all"
+                            >
+                              <Icon name="delete" className="text-xs" />
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-between border-t border-outline-variant/30 pt-4 px-4 bg-surface-container-low rounded-b-xl pb-4">
-                <span className="text-xs font-semibold text-on-surface-variant">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredBatches.length)} of {filteredBatches.length} entries
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    className="p-1 rounded hover:bg-surface-container-high text-on-surface disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
-                  >
-                    <Icon name="chevron_left" />
-                  </button>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between border-t border-outline-variant/30 pt-4 px-4 bg-surface-container-low rounded-b-xl pb-4">
+                  <span className="text-xs font-semibold text-on-surface-variant">
+                    Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredBatches.length)} of {filteredBatches.length} entries
+                  </span>
+                  <div className="flex items-center gap-1">
                     <button
-                      key={page}
                       type="button"
-                      onClick={() => setCurrentPage(page)}
-                      className={`h-7 w-7 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        currentPage === page
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      className="p-1 rounded hover:bg-surface-container-high text-on-surface disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      <Icon name="chevron_left" />
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-7 w-7 text-xs font-bold rounded-lg transition-all cursor-pointer ${currentPage === page
                           ? "bg-primary text-white"
                           : "hover:bg-surface-container-high text-on-surface"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
 
-                  <button
-                    type="button"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    className="p-1 rounded hover:bg-surface-container-high text-on-surface disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
-                  >
-                    <Icon name="chevron_right" />
-                  </button>
+                    <button
+                      type="button"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      className="p-1 rounded hover:bg-surface-container-high text-on-surface disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      <Icon name="chevron_right" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
@@ -918,7 +940,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
               <p className="text-sm text-on-surface-variant font-semibold">
                 Are you sure you want to delete the following batch?
               </p>
-              
+
               <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/30 space-y-2 text-sm font-semibold">
                 <div><span className="text-outline">Batch ID:</span> <span className="text-on-surface">{deletingBatch.batchId}</span></div>
                 <div><span className="text-outline">Donor:</span> <span className="text-on-surface">{deletingBatch.donor}</span></div>

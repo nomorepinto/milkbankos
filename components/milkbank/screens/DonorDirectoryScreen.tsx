@@ -55,6 +55,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
   const [editVerification, setEditVerification] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const handleSelectDonor = (donor: DonorRow) => {
     setSelectedDonor(donor);
@@ -133,6 +134,7 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
 
   useEffect(() => {
     async function fetchDonors() {
+      setIsLoadingData(true);
       try {
         let query = supabase
           .from("donor_profiles")
@@ -182,6 +184,8 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
         }
       } catch (err) {
         console.error("Error fetching donors:", err);
+      } finally {
+        setIsLoadingData(false);
       }
     }
     fetchDonors();
@@ -384,124 +388,131 @@ export function DonorDirectoryScreen(_props: Readonly<DonorDirectoryScreenProps>
           </div>
 
           {/* Data Table */}
-          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-b-xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left border-collapse">
-                <thead>
-                  <tr className="bg-surface-container-low border-b border-outline-variant/50">
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Donor Name</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Contact</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Total Volume</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Donation Count</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Last Donation</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Status</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Verification</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/20 text-sm font-medium">
-                  {donors.length > 0 ? (
-                    donors.map((donor, i) => (
-                      <tr
-                        key={donor.id}
-                        onClick={() => handleSelectDonor(donor)}
-                        className={`hover:bg-surface-container-low/30 transition-colors cursor-pointer ${i % 2 === 1 ? "bg-surface-container-low/10" : ""
-                          }`}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              alt={donor.name}
-                              className="w-8 h-8 rounded-full object-cover bg-surface-container-high border border-outline-variant/40"
-                              src={donor.avatarUrl}
-                            />
-                            <div>
-                              <div className="font-bold text-on-surface">{donor.name}</div>
-                              <div className="text-outline text-[11px]">ID: {donor.id}</div>
+          {isLoadingData ? (
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-12 flex flex-col items-center justify-center space-y-4 shadow-sm">
+              <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <p className="text-sm font-semibold text-outline animate-pulse">Loading donor registry...</p>
+            </div>
+          ) : (
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-b-xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[800px] text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b border-outline-variant/50">
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Donor Name</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Contact</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Total Volume</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Donation Count</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Last Donation</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Status</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface">Verification</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/20 text-sm font-medium">
+                    {donors.length > 0 ? (
+                      donors.map((donor, i) => (
+                        <tr
+                          key={donor.id}
+                          onClick={() => handleSelectDonor(donor)}
+                          className={`hover:bg-surface-container-low/30 transition-colors cursor-pointer ${i % 2 === 1 ? "bg-surface-container-low/10" : ""
+                            }`}
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <img
+                                alt={donor.name}
+                                className="w-8 h-8 rounded-full object-cover bg-surface-container-high border border-outline-variant/40"
+                                src={donor.avatarUrl}
+                              />
+                              <div>
+                                <div className="font-bold text-on-surface">{donor.name}</div>
+                                <div className="text-outline text-[11px]">ID: {donor.id}</div>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-on-surface-variant">{donor.contact}</td>
-                        <td className="px-6 py-4 font-bold text-on-surface">{donor.totalVolume}</td>
-                        <td className="px-6 py-4">{donor.cycles} Cycles</td>
-                        <td className="px-6 py-4 text-on-surface-variant">{donor.lastDonation}</td>
-                        <td className="px-6 py-4">
-                          <StatusChip label={donor.statusLabel} variant={donor.status} />
-                        </td>
-                        <td className="px-6 py-4">
-                          <div
-                            className={`flex items-center gap-1 font-bold text-xs ${donor.status === "verified"
-                              ? "text-secondary"
-                              : donor.status === "neutral"
-                                ? "text-primary"
-                                : "text-error"
-                              }`}
-                          >
-                            <Icon
-                              name={
-                                donor.status === "verified"
-                                  ? "verified"
-                                  : donor.status === "neutral"
-                                    ? "pending"
-                                    : "warning"
-                              }
-                              filled={donor.status === "verified"}
-                              className="text-base"
-                            />
-                            <span>{donor.verification}</span>
-                          </div>
+                          </td>
+                          <td className="px-6 py-4 text-on-surface-variant">{donor.contact}</td>
+                          <td className="px-6 py-4 font-bold text-on-surface">{donor.totalVolume}</td>
+                          <td className="px-6 py-4">{donor.cycles} Cycles</td>
+                          <td className="px-6 py-4 text-on-surface-variant">{donor.lastDonation}</td>
+                          <td className="px-6 py-4">
+                            <StatusChip label={donor.statusLabel} variant={donor.status} />
+                          </td>
+                          <td className="px-6 py-4">
+                            <div
+                              className={`flex items-center gap-1 font-bold text-xs ${donor.status === "verified"
+                                ? "text-secondary"
+                                : donor.status === "neutral"
+                                  ? "text-primary"
+                                  : "text-error"
+                                }`}
+                            >
+                              <Icon
+                                name={
+                                  donor.status === "verified"
+                                    ? "verified"
+                                    : donor.status === "neutral"
+                                      ? "pending"
+                                      : "warning"
+                                }
+                                filled={donor.status === "verified"}
+                                className="text-base"
+                              />
+                              <span>{donor.verification}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-on-surface-variant/70">
+                          No donors found matching the query.
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-on-surface-variant/70">
-                        No donors found matching the query.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Pagination */}
-            <div className="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/30 flex items-center justify-between">
-              <div className="text-on-surface-variant text-xs font-semibold">
-                Showing {donors.length} of {totalCount} donors
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="p-1 rounded hover:bg-surface-container text-outline transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Icon name="chevron_left" />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              {/* Pagination */}
+              <div className="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/30 flex items-center justify-between">
+                <div className="text-on-surface-variant text-xs font-semibold">
+                  Showing {donors.length} of {totalCount} donors
+                </div>
+                <div className="flex items-center gap-1">
                   <button
-                    key={p}
                     type="button"
-                    onClick={() => setCurrentPage(p)}
-                    className={`w-8 h-8 rounded text-xs font-semibold cursor-pointer ${
-                      currentPage === p
-                        ? "bg-primary text-white"
-                        : "hover:bg-surface-container text-on-surface"
-                    }`}
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="p-1 rounded hover:bg-surface-container text-outline transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {p}
+                    <Icon name="chevron_left" />
                   </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="p-1 rounded hover:bg-surface-container text-outline transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Icon name="chevron_right" />
-                </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded text-xs font-semibold cursor-pointer ${
+                        currentPage === p
+                          ? "bg-primary text-white"
+                          : "hover:bg-surface-container text-on-surface"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="p-1 rounded hover:bg-surface-container text-outline transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Icon name="chevron_right" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </main>
       </div>
 

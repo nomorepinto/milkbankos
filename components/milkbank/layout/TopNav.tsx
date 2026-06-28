@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { APP_NAV_ITEMS, SECONDARY_NAV_ITEMS } from "@/lib/data/navigation";
 import { Icon } from "../ui/Icon";
+import { APP_NAME } from "@/lib/config";
 
 export interface TopNavProps {
   readonly activeSlug?: string;
@@ -114,7 +115,7 @@ export function TopNav({ activeSlug }: TopNavProps) {
       <header className="fixed top-0 z-40 flex h-16 w-full items-center justify-between border-b border-white/10 bg-primary-dark px-4 md:px-6">
         <div className="flex items-center gap-4 md:gap-8">
           <span className="text-lg font-extrabold tracking-tight text-white">
-            MilkBankMS
+            {APP_NAME}
           </span>
           {!isMinimalNav && (
             <nav className="hidden items-center gap-5 lg:flex">

@@ -24,7 +24,7 @@ const beneficiaryFormSections = [
   },
 ];
 
-export interface BeneficiaryRegistrationScreenProps {}
+export interface BeneficiaryRegistrationScreenProps { }
 
 export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegistrationScreenProps>) {
   const [formData, setFormData] = useState<Record<string, string>>({

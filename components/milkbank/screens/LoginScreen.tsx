@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { supabase } from "@/lib/supabaseClient";
+import { APP_NAME } from "@/lib/config";
 
 export interface LoginScreenProps { }
 
@@ -17,7 +18,7 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
   const [errorMessage, setErrorMessage] = useState("Invalid credentials. Please verify your email and password.");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [copyright, setCopyright] = useState("© 2024 MilkBankMS Systems");
+  const [copyright, setCopyright] = useState(`© 2024 ${APP_NAME} Systems`);
   const [version, setVersion] = useState("V2.4.1-Stable");
 
   useEffect(() => {
@@ -110,7 +111,7 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
                 <Icon name="water_drop" className="text-5xl" filled />
               </div>
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-white">MilkBankMS</h1>
+                <h1 className="text-3xl font-bold text-white">{APP_NAME}</h1>
               </div>
             </div>
           </div>
