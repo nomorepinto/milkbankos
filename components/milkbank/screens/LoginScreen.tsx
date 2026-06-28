@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { supabase } from "@/lib/supabaseClient";
 import { APP_NAME } from "@/lib/config";
+import bcrypt from "bcryptjs";
 
 export interface LoginScreenProps { }
 
@@ -55,16 +56,18 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
           .from("users")
           .select("id, role, email, encrypted_password")
           .eq("email", email)
-          .eq("encrypted_password", password)
-          .single();
+          .maybeSingle();
 
-        if (dbUser) {
-          if (dbUser.role === "donor") {
-            router.push("/milk-donation-log");
-          } else {
-            router.push("/inventory-lab-results");
+        if (dbUser && dbUser.encrypted_password) {
+          const isPasswordValid = await bcrypt.compare(password, dbUser.encrypted_password);
+          if (isPasswordValid) {
+            if (dbUser.role === "donor") {
+              router.push("/milk-donation-log");
+            } else {
+              router.push("/inventory-lab-results");
+            }
+            return;
           }
-          return;
         }
 
         setErrorMessage(authError.message || "Invalid credentials. Please verify your email and password.");
