@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { supabase } from "@/lib/supabaseClient";
+import emailjs from "@emailjs/browser";
 
 const beneficiaryFormSections = [
   {
@@ -16,7 +17,7 @@ const beneficiaryFormSections = [
   },
   {
     title: "Guardian Info",
-    fields: ["Guardian Name", "Relationship", "Contact Phone"],
+    fields: ["Guardian Name", "Relationship", "Contact Email"],
   },
   {
     title: "Feeding Order",
@@ -37,7 +38,7 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
     "Ward / Room": "",
     "Guardian Name": "",
     "Relationship": "",
-    "Contact Phone": "",
+    "Contact Email": "",
     "Daily Volume (ml)": "",
     "Frequency": "",
     "Special Instructions": "",
@@ -48,6 +49,15 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Email OTP verification state
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
 
   useEffect(() => {
     async function loadMilkAvailable() {
@@ -68,6 +78,40 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
     loadMilkAvailable();
   }, []);
 
+  const handleSendOtp = async () => {
+    const emailValue = formData["Contact Email"];
+    if (!emailValue.trim()) return;
+    setIsSendingOtp(true);
+    setOtpError("");
+    try {
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedCode(code);
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        { to_email: emailValue, code },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      );
+      setOtpSent(true);
+      setShowOtpField(true);
+      setOtp("");
+    } catch (err: any) {
+      setOtpError("Failed to send verification code. Please check the email address.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = () => {
+    if (otp === generatedCode) {
+      setIsEmailVerified(true);
+      setShowOtpField(false);
+      setOtpError("");
+    } else {
+      setOtpError("Incorrect code. Please try again.");
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setErrorMessage("");
@@ -84,7 +128,7 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
         ward: formData["Ward / Room"] || null,
         guardian_name: formData["Guardian Name"] || null,
         guardian_relationship: formData["Relationship"] || null,
-        guardian_contact: formData["Contact Phone"] || null,
+        guardian_contact: formData["Contact Email"] || null,
         daily_volume_ml: formData["Daily Volume (ml)"] ? Number(formData["Daily Volume (ml)"]) : null,
         feeding_frequency: formData["Frequency"] || null,
         special_instructions: formData["Special Instructions"] || null,
@@ -110,12 +154,18 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
         "Ward / Room": "",
         "Guardian Name": "",
         "Relationship": "",
-        "Contact Phone": "",
+        "Contact Email": "",
         "Daily Volume (ml)": "",
         "Frequency": "",
         "Special Instructions": "",
       });
       setStatus("healthy");
+      setIsEmailVerified(false);
+      setShowOtpField(false);
+      setOtpSent(false);
+      setOtp("");
+      setOtpError("");
+      setGeneratedCode("");
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to submit beneficiary registration.");
     } finally {
@@ -123,9 +173,10 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
     }
   };
 
-  const isBeneficiaryFormComplete = Object.entries(formData).every(
-    ([key, value]) => key === "Special Instructions" || value.trim() !== ""
-  );
+  const isBeneficiaryFormComplete =
+    Object.entries(formData).every(
+      ([key, value]) => key === "Special Instructions" || value.trim() !== ""
+    ) && isEmailVerified;
 
   return (
     <AppShell activeSlug="beneficiary-registration">
@@ -197,20 +248,92 @@ export function BeneficiaryRegistrationScreen(_props: Readonly<BeneficiaryRegist
             >
               <h3 className="mb-4 text-lg font-semibold text-on-surface">{section.title}</h3>
               <div className="grid gap-4 sm:grid-cols-2">
-                {section.fields.map((field) => (
-                  <div key={field} className="space-y-1">
-                    <label className="text-xs font-semibold uppercase text-on-surface-variant">
-                      {field}
-                    </label>
-                    <input
-                      type={field === "Date of Birth" ? "date" : "text"}
-                      className="w-full rounded-lg border border-outline-variant bg-white px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 text-on-surface"
-                      placeholder={`Enter ${field.toLowerCase()}`}
-                      value={formData[field]}
-                      onChange={(e) => setFormData(prev => ({ ...prev, [field]: e.target.value }))}
-                    />
-                  </div>
-                ))}
+                {section.fields.map((field) =>
+                  field === "Contact Email" ? (
+                    <div key={field} className="space-y-2 sm:col-span-2">
+                      <label className="text-xs font-semibold uppercase text-on-surface-variant">
+                        Contact Email
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="email"
+                          className="flex-1 rounded-lg border border-outline-variant bg-white px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 text-on-surface"
+                          placeholder="Enter contact email"
+                          value={formData["Contact Email"]}
+                          onChange={(e) => {
+                            setFormData(prev => ({ ...prev, "Contact Email": e.target.value }));
+                            if (isEmailVerified) {
+                              setIsEmailVerified(false);
+                              setShowOtpField(false);
+                              setOtpSent(false);
+                              setOtp("");
+                              setOtpError("");
+                              setGeneratedCode("");
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSendOtp}
+                          disabled={!formData["Contact Email"].trim() || isEmailVerified || isSendingOtp}
+                          className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 ${
+                            isEmailVerified
+                              ? "bg-green-600 text-white cursor-default"
+                              : "bg-primary-container text-white hover:opacity-90"
+                          }`}
+                        >
+                          {isEmailVerified
+                            ? "\u2713 Verified"
+                            : isSendingOtp
+                            ? "Sending\u2026"
+                            : otpSent
+                            ? "Re-send"
+                            : "Verify"}
+                        </button>
+                      </div>
+                      {isEmailVerified && (
+                        <p className="text-xs font-semibold text-green-600">\u2713 Email verified successfully</p>
+                      )}
+                      {showOtpField && !isEmailVerified && (
+                        <div className="space-y-1.5">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={6}
+                              className="flex-1 rounded-lg border border-outline-variant bg-white px-3 py-2.5 text-sm tracking-[0.4em] focus:border-primary"
+                              placeholder="Enter 6-digit code"
+                              value={otp}
+                              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                            />
+                            <button
+                              type="button"
+                              onClick={handleVerifyOtp}
+                              disabled={otp.length < 6}
+                              className="rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                            >
+                              Confirm
+                            </button>
+                          </div>
+                          {otpError && <p className="text-xs text-red-500">{otpError}</p>}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div key={field} className="space-y-1">
+                      <label className="text-xs font-semibold uppercase text-on-surface-variant">
+                        {field}
+                      </label>
+                      <input
+                        type={field === "Date of Birth" ? "date" : "text"}
+                        className="w-full rounded-lg border border-outline-variant bg-white px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 text-on-surface"
+                        placeholder={`Enter ${field.toLowerCase()}`}
+                        value={formData[field]}
+                        onChange={(e) => setFormData(prev => ({ ...prev, [field]: e.target.value }))}
+                      />
+                    </div>
+                  )
+                )}
               </div>
             </section>
           ))}
