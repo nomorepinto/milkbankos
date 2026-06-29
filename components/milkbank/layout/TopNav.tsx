@@ -20,50 +20,52 @@ export function TopNav({ activeSlug }: TopNavProps) {
   useEffect(() => {
     async function loadUserProfile() {
       try {
+        let dbUser: { id: string; role: string; email: string } | null = null;
+
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: staff } = await supabase
-            .from("staff_profiles")
-            .select("avatar_initials")
-            .eq("id", user.id)
-            .single();
+          // Look up in our custom users table to get role and id mapping
+          const { data } = await supabase
+            .from("users")
+            .select("id, role, email")
+            .eq("auth_user_id", user.id)
+            .maybeSingle();
+          if (data) {
+            dbUser = data;
+          }
+        } else if (typeof window !== "undefined") {
+          const storedUserStr = localStorage.getItem("sb_fallback_user");
+          if (storedUserStr) {
+            try {
+              dbUser = JSON.parse(storedUserStr);
+            } catch (e) {
+              console.error("Error parsing stored fallback user in TopNav", e);
+            }
+          }
+        }
 
-          if (staff?.avatar_initials) {
-            setInitials(staff.avatar_initials);
-          } else {
-            const { data: donor } = await supabase
+        if (dbUser) {
+          if (dbUser.role === "donor") {
+            const { data: d } = await supabase
               .from("donor_profiles")
               .select("full_name")
-              .eq("id", user.id)
-              .single();
+              .eq("id", dbUser.id)
+              .maybeSingle();
 
-            if (donor?.full_name) {
-              const parts = donor.full_name.trim().split(/\s+/);
+            if (d?.full_name) {
+              const parts = d.full_name.trim().split(/\s+/);
               const init = parts.map((p: string) => p[0]).join("").substring(0, 2).toUpperCase();
               setInitials(init || "U");
-            } else {
-              // Fallback lookup in users table in case profile tables are not fully seeded
-              const { data: dbUser } = await supabase
-                .from("users")
-                .select("id, role, email")
-                .eq("email", user.email)
-                .single();
+            }
+          } else {
+            const { data: s } = await supabase
+              .from("staff_profiles")
+              .select("avatar_initials")
+              .eq("id", dbUser.id)
+              .maybeSingle();
 
-              if (dbUser) {
-                if (dbUser.role === "donor") {
-                  const { data: d } = await supabase.from("donor_profiles").select("full_name").eq("id", dbUser.id).single();
-                  if (d?.full_name) {
-                    const parts = d.full_name.trim().split(/\s+/);
-                    const init = parts.map((p: string) => p[0]).join("").substring(0, 2).toUpperCase();
-                    setInitials(init || "U");
-                  }
-                } else {
-                  const { data: s } = await supabase.from("staff_profiles").select("avatar_initials").eq("id", dbUser.id).single();
-                  if (s?.avatar_initials) {
-                    setInitials(s.avatar_initials);
-                  }
-                }
-              }
+            if (s?.avatar_initials) {
+              setInitials(s.avatar_initials);
             }
           }
         }
@@ -80,6 +82,9 @@ export function TopNav({ activeSlug }: TopNavProps) {
       await supabase.auth.signOut();
     } catch (err) {
       console.error("Error signing out:", err);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("sb_fallback_user");
     }
     window.location.href = "/login";
   };

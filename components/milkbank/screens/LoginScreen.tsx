@@ -176,6 +176,13 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
         if (dbUser && dbUser.encrypted_password) {
           const isPasswordValid = await bcrypt.compare(password, dbUser.encrypted_password);
           if (isPasswordValid) {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("sb_fallback_user", JSON.stringify({
+                id: dbUser.id,
+                email: dbUser.email,
+                role: dbUser.role
+              }));
+            }
             if (dbUser.role === "donor") {
               router.push("/milk-donation-log");
             } else {
@@ -191,6 +198,9 @@ export function LoginScreen(_props: Readonly<LoginScreenProps>) {
       }
 
       // Auth succeeded — look up the role from the users table
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("sb_fallback_user");
+      }
       let role: string | null = null;
       try {
         const { data: profile } = await supabase

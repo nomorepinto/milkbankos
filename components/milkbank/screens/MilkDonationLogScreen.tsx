@@ -35,9 +35,37 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
     setIsLoadingData(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let donorId = user?.id;
+      let donorId: string | null = null;
 
-      // Fallback to the first donor profile if no session exists (for unauthenticated viewing)
+      if (user) {
+        // Map auth.users.id to public.users.id
+        const { data: dbUser } = await supabase
+          .from("users")
+          .select("id")
+          .eq("auth_user_id", user.id)
+          .maybeSingle();
+
+        if (dbUser) {
+          donorId = dbUser.id;
+        }
+      }
+
+      // Check fallback user from localStorage if no active Supabase Auth user
+      if (!donorId && typeof window !== "undefined") {
+        const storedUserStr = localStorage.getItem("sb_fallback_user");
+        if (storedUserStr) {
+          try {
+            const storedUser = JSON.parse(storedUserStr);
+            if (storedUser && storedUser.role === "donor") {
+              donorId = storedUser.id;
+            }
+          } catch (e) {
+            console.error("Error parsing stored fallback user", e);
+          }
+        }
+      }
+
+      // Fallback to the first donor profile if no session or fallback exists (for unauthenticated viewing)
       if (!donorId) {
         const { data: profiles } = await supabase.from("donor_profiles").select("id").limit(1);
         if (profiles && profiles.length > 0) {
@@ -137,6 +165,9 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
     } catch (err) {
       console.error("Error logging out:", err);
     }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("sb_fallback_user");
+    }
     window.location.href = "/login";
   };
 
@@ -194,6 +225,14 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
               <h2 className="text-3xl font-bold text-on-surface">Donation History</h2>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={openAddModal}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors cursor-pointer shadow-sm"
+              >
+                <Icon name="add" />
+                Log Donation
+              </button>
               <button
                 type="button"
                 onClick={handleLogout}
