@@ -104,28 +104,13 @@ create table public.collection_points (
   updated_at       timestamp with time zone default now()
 );
 
--- ---------------------------------------------------------------------
--- DONATIONS
--- ---------------------------------------------------------------------
-create table public.donations (
-  id                  uuid primary key default gen_random_uuid(),
-  donor_id            uuid not null references public.donor_profiles (id) on delete restrict,
-  collection_point_id text references public.collection_points (id),
-  donated_at          timestamp with time zone default now(),
-  volume_ml           numeric(10,2) not null,
-  milk_type           public.milk_type not null default 'Fresh',
-  temperature_c       numeric(5,2),
-  status              public.status_variant not null default 'pending',
-  status_label        text not null,
-  created_at          timestamp with time zone default now()
-);
+
 
 -- ---------------------------------------------------------------------
 -- INVENTORY BATCHES
 -- ---------------------------------------------------------------------
 create table public.inventory_batches (
   batch_id          text primary key,
-  donation_id       uuid references public.donations (id),
   donor_id          uuid not null references public.donor_profiles (id),
   volume_ml         numeric(10,2) not null,
   collected_at      timestamp with time zone not null,
@@ -288,7 +273,6 @@ alter table public.users             enable row level security;
 alter table public.donor_profiles    enable row level security;
 alter table public.staff_profiles    enable row level security;
 alter table public.collection_points enable row level security;
-alter table public.donations         enable row level security;
 alter table public.inventory_batches enable row level security;
 alter table public.dispensing_records enable row level security;
 alter table public.terminal_sessions enable row level security;
@@ -332,17 +316,7 @@ create policy "collection_points_staff_write" on public.collection_points
   using (coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') in ('staff', 'admin'))
   with check (coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') in ('staff', 'admin'));
 
-create policy "donations_owner_or_staff_read" on public.donations
-  for select to authenticated
-  using (
-    donor_id = (select id from public.users where auth_user_id = auth.uid())
-    or (coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') in ('staff', 'admin'))
-  );
 
-create policy "donations_staff_write" on public.donations
-  for all to authenticated
-  using (coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') in ('staff', 'admin'))
-  with check (coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') in ('staff', 'admin'));
 
 create policy "inventory_staff_all" on public.inventory_batches
   for all to authenticated
@@ -414,8 +388,8 @@ with (security_invoker = true) as
 select
   coalesce(sum(volume_ml), 0) as total_volume_ml,
   count(*) as donations_count
-from public.donations
-where donated_at >= date_trunc('month', now());
+from public.inventory_batches
+where collected_at >= date_trunc('month', now());
 
 create or replace view public.view_donor_directory_stats
 with (security_invoker = true) as
@@ -447,7 +421,7 @@ create or replace view public.view_logistics_stats
 with (security_invoker = true) as
 select
   (select count(*) from public.logistics_points where type = 'shipping') as active_hubs,
-  (select coalesce(sum(volume_ml), 0) from public.donations where donated_at::date = current_date) as today_intake_ml,
+  (select coalesce(sum(volume_ml), 0) from public.inventory_batches where collected_at::date = current_date) as today_intake_ml,
   (select count(*) from public.donor_profiles where status = 'verified') as live_donors;
 
 create or replace view public.view_export_hub_stats
@@ -490,19 +464,12 @@ insert into public.collection_points (id, name, address, region, latitude, longi
   ('CP-02', 'Bayview Collection Hub', '1450 Evans Ave, San Francisco', 'Metropolitan North', 37.7388, -122.3892, 5, 8200, 'pending', 'Restocking')
 on conflict (id) do nothing;
 
--- Seed Donations
-insert into public.donations (id, donor_id, collection_point_id, donated_at, volume_ml, milk_type, temperature_c, status, status_label) values
-  ('e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1', '22222222-2222-2222-2222-222222222222', 'CP-01', '2026-06-17 09:15:00+00', 450, 'Fresh', 4.2, 'verified', 'Verified'),
-  ('e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2', '33333333-3333-3333-3333-333333333333', 'CP-01', '2026-06-16 14:30:00+00', 380, 'Frozen', -20.0, 'pending', 'Processing'),
-  ('e3e3e3e3-e3e3-e3e3-e3e3-e3e3e3e3e3e3', '22222222-2222-2222-2222-222222222222', 'CP-01', '2026-06-15 11:00:00+00', 520, 'Fresh', 3.8, 'verified', 'Verified')
-on conflict (id) do nothing;
-
 -- Seed Inventory Batches
-insert into public.inventory_batches (batch_id, donation_id, donor_id, volume_ml, collected_at, expiry_date, lab_status, lab_label, storage_location) values
-  ('MB-2024-0892', 'e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1', '22222222-2222-2222-2222-222222222222', 450, '2026-06-17 08:30:00+00', '2026-08-15', 'verified', 'Verified', 'Freezer A-12'),
-  ('MB-2024-0891', 'e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2', '33333333-3333-3333-3333-333333333333', 380, '2026-06-17 07:15:00+00', '2026-08-14', 'pending', 'Pending QC', 'Freezer A-08'),
-  ('MB-2024-0890', 'e3e3e3e3-e3e3-e3e3-e3e3-e3e3e3e3e3e3', '33333333-3333-3333-3333-333333333333', 520, '2026-06-16 16:45:00+00', '2026-08-13', 'verified', 'Verified', 'Freezer B-03'),
-  ('MB-2024-0889', null, '22222222-2222-2222-2222-222222222222', 290, '2026-06-16 14:20:00+00', '2026-08-13', 'fail', 'Failed', 'Quarantine Q-01')
+insert into public.inventory_batches (batch_id, donor_id, volume_ml, collected_at, expiry_date, lab_status, lab_label, storage_location) values
+  ('MB-2024-0892', '22222222-2222-2222-2222-222222222222', 450, '2026-06-17 08:30:00+00', '2026-08-15', 'verified', 'Verified', 'Freezer A-12'),
+  ('MB-2024-0891', '33333333-3333-3333-3333-333333333333', 380, '2026-06-17 07:15:00+00', '2026-08-14', 'pending', 'Pending QC', 'Freezer A-08'),
+  ('MB-2024-0890', '33333333-3333-3333-3333-333333333333', 520, '2026-06-16 16:45:00+00', '2026-08-13', 'verified', 'Verified', 'Freezer B-03'),
+  ('MB-2024-0889', '22222222-2222-2222-2222-222222222222', 290, '2026-06-16 14:20:00+00', '2026-08-13', 'fail', 'Failed', 'Quarantine Q-01')
 on conflict (batch_id) do nothing;
 
 -- Seed Beneficiaries
