@@ -46,6 +46,7 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"dispensing" | "beneficiary">("dispensing");
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Form States
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState("");
@@ -196,7 +197,20 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
     }
   };
 
-  const critical = records.filter(
+  const filteredRecords = records.filter((r) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      r.id.toLowerCase().includes(query) ||
+      r.beneficiary.toLowerCase().includes(query) ||
+      r.ward.toLowerCase().includes(query) ||
+      String(r.volumeMl).toLowerCase().includes(query) ||
+      r.date.toLowerCase().includes(query) ||
+      r.statusLabel.toLowerCase().includes(query)
+    );
+  });
+
+  const critical = filteredRecords.filter(
     (r) => r.beneficiaryStatus === "critical" && r.status === "pending"
   );
 
@@ -289,7 +303,10 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
           {/* Navigation Tabs */}
           <div className="flex border-b border-outline-variant/30 gap-6">
             <button
-              onClick={() => setActiveTab("dispensing")}
+              onClick={() => {
+                setActiveTab("dispensing");
+                setSearchQuery("");
+              }}
               className={`px-4 py-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${activeTab === "dispensing"
                 ? "border-primary text-primary"
                 : "border-transparent text-outline hover:text-on-surface"
@@ -298,7 +315,10 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
               Dispensing Records
             </button>
             <button
-              onClick={() => setActiveTab("beneficiary")}
+              onClick={() => {
+                setActiveTab("beneficiary");
+                setSearchQuery("");
+              }}
               className={`px-4 py-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${activeTab === "beneficiary"
                 ? "border-primary text-primary"
                 : "border-transparent text-outline hover:text-on-surface"
@@ -307,6 +327,36 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
               Beneficiary List
             </button>
           </div>
+
+          {/* Search Bar */}
+          {!isLoadingData && (
+            <div className="relative max-w-md w-full">
+              <Icon
+                name="search"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-outline"
+              />
+              <input
+                type="text"
+                placeholder={
+                  activeTab === "dispensing"
+                    ? "Search dispensing records (ID, name, ward, date)..."
+                    : "Search beneficiaries (name, MRN, NICU, guardian)..."
+                }
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-10 py-3 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-sm text-on-surface placeholder-outline-variant/70 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-outline hover:text-on-surface rounded-full transition-colors cursor-pointer"
+                >
+                  <Icon name="close" className="text-sm" />
+                </button>
+              )}
+            </div>
+          )}
 
           {isLoadingData ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -361,33 +411,41 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
                         </tr>
                       </thead>
                       <tbody>
-                        {records.map((record, i) => (
-                          <tr
-                            key={record.id}
-                            className={i % 2 === 0 ? "" : "bg-surface-container-low/50"}
-                          >
-                            <td className="px-4 py-3 font-medium text-primary">{record.id}</td>
-                            <td className="px-4 py-3">{record.beneficiary}</td>
-                            <td className="px-4 py-3">{record.ward}</td>
-                            <td className="px-4 py-3 tabular-nums">{record.volumeMl} ml</td>
-                            <td className="px-4 py-3">{record.date}</td>
-                            <td className="px-4 py-3">
-                              <StatusChip label={record.statusLabel} variant={record.status} />
-                            </td>
-                            <td className="px-4 py-3">
-                              <select
-                                value={record.status}
-                                onChange={(e) => handleStatusChange(record.id, e.target.value)}
-                                className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
-                              >
-                                <option value="pending">Scheduled</option>
-                                <option value="verified">Dispensed</option>
-                                <option value="fail">Failed</option>
-                                <option value="neutral">Neutral</option>
-                              </select>
+                        {filteredRecords.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-4 py-8 text-center text-on-surface-variant/70 font-semibold">
+                              No matching dispensing records found.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          filteredRecords.map((record, i) => (
+                            <tr
+                              key={record.id}
+                              className={i % 2 === 0 ? "" : "bg-surface-container-low/50"}
+                            >
+                              <td className="px-4 py-3 font-medium text-primary">{record.id}</td>
+                              <td className="px-4 py-3">{record.beneficiary}</td>
+                              <td className="px-4 py-3">{record.ward}</td>
+                              <td className="px-4 py-3 tabular-nums">{record.volumeMl} ml</td>
+                              <td className="px-4 py-3">{record.date}</td>
+                              <td className="px-4 py-3">
+                                <StatusChip label={record.statusLabel} variant={record.status} />
+                              </td>
+                              <td className="px-4 py-3">
+                                <select
+                                  value={record.status}
+                                  onChange={(e) => handleStatusChange(record.id, e.target.value)}
+                                  className="px-2 py-1 text-xs border border-outline-variant rounded bg-white text-on-surface outline-none font-semibold focus:border-primary cursor-pointer"
+                                >
+                                  <option value="pending">Scheduled</option>
+                                  <option value="verified">Dispensed</option>
+                                  <option value="fail">Failed</option>
+                                  <option value="neutral">Neutral</option>
+                                </select>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -416,8 +474,27 @@ export function BeneficiaryDispensingScreen(_props: Readonly<BeneficiaryDispensi
 
           {/* Tab 2: Beneficiary List */}
           {activeTab === "beneficiary" && (() => {
-            const criticalCare = beneficiaries.filter(b => b.status === "critical");
-            const healthy = beneficiaries.filter(b => b.status === "healthy" || !b.status);
+            const filteredBeneficiaries = beneficiaries.filter((b) => {
+              if (!searchQuery.trim()) return true;
+              const query = searchQuery.toLowerCase();
+              return (
+                b.infant_name.toLowerCase().includes(query) ||
+                (b.medical_record_number || "").toLowerCase().includes(query) ||
+                (b.date_of_birth || "").toLowerCase().includes(query) ||
+                (b.gestational_age || "").toLowerCase().includes(query) ||
+                (b.hospital_name || "").toLowerCase().includes(query) ||
+                (b.ward || "").toLowerCase().includes(query) ||
+                (b.attending_physician || "").toLowerCase().includes(query) ||
+                String(b.daily_volume_ml || "").toLowerCase().includes(query) ||
+                (b.feeding_frequency || "").toLowerCase().includes(query) ||
+                (b.guardian_name || "").toLowerCase().includes(query) ||
+                (b.guardian_contact || "").toLowerCase().includes(query) ||
+                (b.guardian_relationship || "").toLowerCase().includes(query) ||
+                (b.special_instructions || "").toLowerCase().includes(query)
+              );
+            });
+            const criticalCare = filteredBeneficiaries.filter(b => b.status === "critical");
+            const healthy = filteredBeneficiaries.filter(b => b.status === "healthy" || !b.status);
             return (
               <div className="space-y-8">
                 <div className="flex justify-between items-center">

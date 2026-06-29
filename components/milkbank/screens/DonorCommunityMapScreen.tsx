@@ -35,6 +35,7 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
   // Google Maps State
   const [map, setMap] = useState<any>(null);
   const [pinPositions, setPinPositions] = useState<Record<string, { top: string; left: string; visible: boolean }>>({});
+  const [myLocationPin, setMyLocationPin] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
     async function loadMapData() {
@@ -191,7 +192,7 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
 
   // Track map projection to synchronize React HTML pins with map lat/lng coordinates
   useEffect(() => {
-    if (!map || pins.length === 0) return;
+    if (!map) return;
 
     const overlay = new google.maps.OverlayView();
     overlay.onAdd = () => { };
@@ -218,6 +219,25 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
           };
         }
       });
+
+      if (myLocationPin) {
+        const latLng = new google.maps.LatLng(myLocationPin.latitude, myLocationPin.longitude);
+        const pos = projection.fromLatLngToContainerPixel(latLng);
+        if (pos) {
+          newPositions["my-location"] = {
+            top: `${pos.y}px`,
+            left: `${pos.x}px`,
+            visible: true
+          };
+        } else {
+          newPositions["my-location"] = {
+            top: "0px",
+            left: "0px",
+            visible: false
+          };
+        }
+      }
+
       setPinPositions(newPositions);
     };
 
@@ -232,7 +252,30 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
       overlay.setMap(null);
       google.maps.event.removeListener(idleListener);
     };
-  }, [map, pins]);
+  }, [map, pins, myLocationPin]);
+
+  const handleGetMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setMyLocationPin({ latitude, longitude });
+        if (map) {
+          map.panTo({ lat: latitude, lng: longitude });
+          map.setZoom(14);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert("Unable to retrieve your location. Please check your browser permissions.");
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  };
 
   const filteredPins = pins.filter((pin) => {
     const matchesSearch =
@@ -335,7 +378,16 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
           </div>
 
           {/* UI Overlay: View Switcher */}
-          <div className="absolute top-6 right-6 z-10">
+          <div className="absolute top-6 right-6 z-10 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleGetMyLocation}
+              className="flex items-center rounded-lg border border-white/30 bg-white/80 px-4 py-2 text-sm font-semibold text-primary shadow-sm backdrop-blur-md hover:bg-white transition-all active:scale-95 cursor-pointer"
+            >
+              <Icon name="my_location" className="mr-2 text-primary" />
+              <span className="uppercase tracking-wider text-xs">My Location</span>
+            </button>
+
             <Link href="/donor-directory">
               <button
                 type="button"
@@ -446,6 +498,31 @@ export function DonorCommunityMapScreen(_props: Readonly<DonorCommunityMapScreen
                 </div>
               );
             })}
+
+            {myLocationPin && pinPositions["my-location"] && pinPositions["my-location"].visible && (
+              <div
+                style={{
+                  top: pinPositions["my-location"].top,
+                  left: pinPositions["my-location"].left,
+                  transform: "translate(-50%, -50%)"
+                }}
+                className="absolute pointer-events-auto group"
+              >
+                <div className="relative cursor-pointer flex items-center justify-center">
+                  <div className="absolute w-8 h-8 bg-[#00D2FF]/30 rounded-full animate-ping pointer-events-none" />
+                  <div className="absolute w-5 h-5 bg-[#00D2FF]/40 rounded-full animate-pulse pointer-events-none" />
+                  <div className="w-4.5 h-4.5 rounded-full bg-gradient-to-tr from-[#0055FF] to-[#00D2FF] border-2 border-white shadow-[0_0_10px_rgba(0,210,255,0.6)] relative z-10 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                  </div>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 mb-2 w-24 -translate-x-1/2 rounded-lg bg-slate-900/90 px-2 py-1 text-center text-[10px] font-bold text-white shadow-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    My Location
+                    <div className="absolute -bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rotate-45 bg-slate-900/90" />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

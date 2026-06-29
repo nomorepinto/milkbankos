@@ -7,6 +7,7 @@ import { StatCard } from "@/components/milkbank/ui/StatCard";
 import { StatusChip } from "@/components/milkbank/ui/StatusChip";
 import { supabase } from "@/lib/supabaseClient";
 import { InventoryHistoryTable } from "@/components/milkbank/ui/InventoryHistoryTable";
+import emailjs from "@emailjs/browser";
 
 export interface InventoryLabResultsScreenProps { }
 
@@ -79,7 +80,8 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
           rawExpiry: b.expiry_date,
           labStatus: b.lab_status,
           labLabel: b.lab_label,
-          storage: b.storage_location || "N/A"
+          storage: b.storage_location || "N/A",
+          temperature: b.temperature != null ? Number(b.temperature) : null
         })));
       }
     } catch (err) {
@@ -154,6 +156,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   const [editStorage, setEditStorage] = useState("");
   const [editStatus, setEditStatus] = useState("pending");
   const [editLabel, setEditLabel] = useState("Pending QC");
+  const [editTemp, setEditTemp] = useState("");
 
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [deletingBatch, setDeletingBatch] = useState<any | null>(null);
@@ -202,6 +205,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   const [addExpiry, setAddExpiry] = useState("");
   const [addStatus, setAddStatus] = useState("pending");
   const [addStorage, setAddStorage] = useState("");
+  const [addTemp, setAddTemp] = useState("");
 
   const loadDonors = async () => {
     try {
@@ -220,6 +224,25 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
   useEffect(() => {
     loadDonors();
   }, []);
+
+  const openAddModal = () => {
+    const year = new Date().getFullYear();
+    let nextNum = 1;
+    if (batches && batches.length > 0) {
+      const nums = batches
+        .map(b => {
+          const match = b.batchId.match(/MB-\d{4}-(\d+)/);
+          return match ? parseInt(match[1], 10) : null;
+        })
+        .filter((n): n is number => n !== null);
+      if (nums.length > 0) {
+        nextNum = Math.max(...nums) + 1;
+      }
+    }
+    const numStr = String(nextNum).padStart(4, "0");
+    setAddBatchId(`MB-${year}-${numStr}`);
+    setIsAddModalOpen(true);
+  };
 
   const handleSubmitAddBatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,10 +267,37 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
           expiry_date: addExpiry,
           lab_status: addStatus,
           lab_label: finalLabel,
-          storage_location: addStorage.trim() || null
+          storage_location: addStorage.trim() || null,
+          temperature: addTemp ? Number(addTemp) : null
         }]);
 
       if (error) throw error;
+
+      // Fetch donor email to send notification
+      try {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("email")
+          .eq("id", addDonorId)
+          .single();
+
+        if (userData?.email) {
+          const donor = donors.find((d) => d.id === addDonorId);
+          const donorName = donor ? donor.full_name : "Donor";
+          await emailjs.send(
+            process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+            process.env.NEXT_PUBLIC_EMAILJS_DONATION_TEMPLATE_ID!,
+            {
+              to_email: userData.email,
+              name: donorName,
+              status: finalLabel,
+            },
+            process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+          );
+        }
+      } catch (emailErr) {
+        console.error("Error sending email notification to donor:", emailErr);
+      }
 
       alert(`Success! Created batch: ${addBatchId}`);
       setIsAddModalOpen(false);
@@ -259,6 +309,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
       setAddExpiry("");
       setAddStatus("pending");
       setAddStorage("");
+      setAddTemp("");
       // Reload inventory data
       loadData();
       setHistoryRefreshKey((prev) => prev + 1);
@@ -274,6 +325,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
     setEditStorage(batch.storage === "N/A" ? "" : batch.storage);
     setEditStatus(batch.labStatus);
     setEditLabel(batch.labLabel);
+    setEditTemp(batch.temperature != null ? String(batch.temperature) : "");
     setIsEditModalOpen(true);
   };
 
@@ -297,7 +349,8 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
           expiry_date: editExpiry,
           storage_location: editStorage || null,
           lab_status: editStatus,
-          lab_label: finalLabel
+          lab_label: finalLabel,
+          temperature: editTemp ? Number(editTemp) : null
         })
         .eq("batch_id", editingBatch.batchId);
 
@@ -384,7 +437,7 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
             <div className="flex gap-2 relative">
               <button
                 type="button"
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={openAddModal}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-4 py-2 text-sm font-semibold text-white cursor-pointer hover:brightness-95 active:scale-[0.98] transition-all"
               >
                 <Icon name="add" />
@@ -584,7 +637,12 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                         >
                           <td className="px-4 py-3 font-medium text-primary">{batch.batchId}</td>
                           <td className="px-4 py-3">{batch.donor}</td>
-                          <td className="px-4 py-3 tabular-nums">{batch.volumeMl} ml</td>
+                          <td className="px-4 py-3 tabular-nums">
+                            <div>{batch.volumeMl} ml</div>
+                            {batch.temperature != null && (
+                              <div className="text-xs text-outline font-medium">{batch.temperature}°C</div>
+                            )}
+                          </td>
                           <td className="px-4 py-3 text-on-surface-variant">{batch.collected}</td>
                           <td className="px-4 py-3 text-on-surface-variant">{batch.expiry}</td>
                           <td className="px-4 py-3">
@@ -724,17 +782,33 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Storage Location
-                  </label>
-                  <input
-                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
-                    type="text"
-                    placeholder="e.g. Freezer A-12"
-                    value={editStorage}
-                    onChange={(e) => setEditStorage(e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Storage Location
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                      type="text"
+                      placeholder="e.g. Freezer A-12"
+                      value={editStorage}
+                      onChange={(e) => setEditStorage(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Temperature (°C)
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm text-on-surface bg-white"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. -20.0"
+                      value={editTemp}
+                      onChange={(e) => setEditTemp(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -816,15 +890,13 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Batch ID *
+                    Batch ID (Auto-Generated)
                   </label>
                   <input
-                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm"
+                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container-low outline-none font-semibold text-sm text-on-surface disabled:opacity-70"
                     type="text"
-                    required
-                    placeholder="e.g. MB-2026-0001"
+                    disabled
                     value={addBatchId}
-                    onChange={(e) => setAddBatchId(e.target.value)}
                   />
                 </div>
 
@@ -904,20 +976,36 @@ export function InventoryLabResultsScreen(_props: Readonly<InventoryLabResultsSc
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Initial Lab Status
-                  </label>
-                  <select
-                    className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white"
-                    value={addStatus}
-                    onChange={(e) => setAddStatus(e.target.value)}
-                  >
-                    <option value="pending">Pending QC</option>
-                    <option value="verified">Verified</option>
-                    <option value="fail">Failed</option>
-                    <option value="neutral">Neutral</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Initial Lab Status
+                    </label>
+                    <select
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm bg-white"
+                      value={addStatus}
+                      onChange={(e) => setAddStatus(e.target.value)}
+                    >
+                      <option value="pending">Pending QC</option>
+                      <option value="verified">Verified</option>
+                      <option value="fail">Failed</option>
+                      <option value="neutral">Neutral</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Temperature (°C)
+                    </label>
+                    <input
+                      className="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-semibold text-sm text-on-surface bg-white"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. -20.0"
+                      value={addTemp}
+                      onChange={(e) => setAddTemp(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
 
