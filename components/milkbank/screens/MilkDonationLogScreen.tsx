@@ -82,6 +82,15 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
     loadData();
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Error logging out:", err);
+    }
+    window.location.href = "/login";
+  };
+
   return (
     <AppShell activeSlug="milk-donation-log">
       <main className="custom-scrollbar min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-4 md:p-8">
@@ -90,13 +99,23 @@ export function MilkDonationLogScreen(_props: Readonly<MilkDonationLogScreenProp
             <div>
               <h2 className="text-3xl font-bold text-on-surface">Donation History</h2>
             </div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white"
-            >
-              <Icon name="add" />
-              Log New Donation
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-lg border border-outline px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+              >
+                <Icon name="logout" />
+                Log Out
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white cursor-pointer"
+              >
+                <Icon name="add" />
+                Log New Donation
+              </button>
+            </div>
           </div>
 
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
