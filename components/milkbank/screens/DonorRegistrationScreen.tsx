@@ -6,6 +6,7 @@ import { AppShell } from "@/components/milkbank/layout/AppShell";
 import { Icon } from "@/components/milkbank/ui/Icon";
 import { supabase } from "@/lib/supabaseClient";
 import { APP_NAME } from "@/lib/config";
+import emailjs from "@emailjs/browser";
 
 const donorRegistrationSteps = [
   "Personal Profile",
@@ -39,17 +40,61 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
   const [consentChecked, setConsentChecked] = useState(false);
   const [healthChecks, setHealthChecks] = useState([false, false, false]);
 
+  // Email OTP verification state
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+
   const isStep1Complete =
     fullName.trim() !== "" &&
     dob !== "" &&
     phone.trim() !== "" &&
     email.trim() !== "" &&
+    isEmailVerified &&
     password.trim() !== "" &&
     address.trim() !== "" &&
     area.trim() !== "" &&
     region.trim() !== "";
 
   const isStep2Complete = healthChecks.every((val) => val === true);
+
+  const handleSendOtp = async () => {
+    if (!email.trim()) return;
+    setIsSendingOtp(true);
+    setOtpError("");
+    try {
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedCode(code);
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        { to_email: email, code },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      );
+      setOtpSent(true);
+      setShowOtpField(true);
+      setOtp("");
+    } catch (err: any) {
+      setOtpError("Failed to send verification code. Please check the email address and try again.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = () => {
+    if (otp === generatedCode) {
+      setIsEmailVerified(true);
+      setShowOtpField(false);
+      setOtpError("");
+    } else {
+      setOtpError("Incorrect code. Please try again.");
+    }
+  };
 
   const handleLocateAddress = async () => {
     if (!address.trim()) {
@@ -97,13 +142,26 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
   const handleSubmitRegistration = async () => {
     setIsLoading(true);
     try {
+      // Create the Supabase Auth account
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (signUpError) {
+        alert("Registration failed: " + signUpError.message);
+        return;
+      }
+
+      // Link the Auth user to our custom users table
       const { data: newUser, error: userErr } = await supabase
         .from("users")
         .insert({
+          auth_user_id: signUpData.user?.id ?? null,
           email: email,
           encrypted_password: password,
           role: "donor",
-          is_active: true
+          is_active: true,
         })
         .select("id")
         .single();
@@ -129,7 +187,7 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
           region: region,
           area: area,
           latitude: latitude,
-          longitude: longitude
+          longitude: longitude,
         });
 
       if (profileErr) {
@@ -221,15 +279,79 @@ export function DonorRegistrationScreen(_props: Readonly<DonorRegistrationScreen
                       onChange={(e) => setPhone(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2 sm:col-span-2">
                     <label className="text-xs font-semibold uppercase text-on-surface-variant">Email Address</label>
-                    <input
-                      type="email"
-                      className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
-                      placeholder="Enter email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        className="flex-1 rounded-lg border border-outline-variant px-3 py-2.5 text-sm focus:border-primary"
+                        placeholder="Enter email address"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (isEmailVerified) {
+                            setIsEmailVerified(false);
+                            setShowOtpField(false);
+                            setOtpSent(false);
+                            setOtp("");
+                            setOtpError("");
+                            setGeneratedCode("");
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={!email.trim() || isEmailVerified || isSendingOtp}
+                        className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 ${
+                          isEmailVerified
+                            ? "bg-green-600 text-white cursor-default"
+                            : "bg-primary-container text-white hover:opacity-90"
+                        }`}
+                      >
+                        {isEmailVerified
+                          ? "✓ Verified"
+                          : isSendingOtp
+                          ? "Sending…"
+                          : otpSent
+                          ? "Re-send"
+                          : "Verify"}
+                      </button>
+                    </div>
+                    {isEmailVerified && (
+                      <p className="text-xs font-semibold text-green-600 flex items-center gap-1">
+                        ✓ Email verified successfully
+                      </p>
+                    )}
+                    {showOtpField && !isEmailVerified && (
+                      <div className="space-y-1.5">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={6}
+                            className="flex-1 rounded-lg border border-outline-variant px-3 py-2.5 text-sm tracking-[0.4em] focus:border-primary"
+                            placeholder="Enter 6-digit code"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyOtp}
+                            disabled={otp.length < 6}
+                            className="rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                          >
+                            Confirm
+                          </button>
+                        </div>
+                        {otpError && (
+                          <p className="text-xs text-red-500">{otpError}</p>
+                        )}
+                      </div>
+                    )}
+                    {otpSent && !isEmailVerified && !showOtpField && (
+                      <p className="text-xs text-on-surface-variant">Check your inbox for the verification code.</p>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-semibold uppercase text-on-surface-variant">Password</label>
